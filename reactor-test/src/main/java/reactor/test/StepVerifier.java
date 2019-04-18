@@ -26,10 +26,10 @@ import java.util.function.Consumer;
 import java.util.function.Predicate;
 import java.util.function.Supplier;
 
-
 import org.reactivestreams.Publisher;
 import org.reactivestreams.Subscriber;
 import org.reactivestreams.Subscription;
+
 import reactor.core.Fuseable;
 import reactor.core.publisher.Hooks;
 import reactor.core.scheduler.Schedulers;
@@ -87,6 +87,11 @@ import reactor.util.function.Tuple2;
  * @author Simon Baslé
  */
 public interface StepVerifier {
+
+
+	static <T> WithOptions<T> withOptions(Publisher<T> underTest) {
+		return new WithOptions<>(underTest);
+	}
 
 	/**
 	 * Default verification timeout (see {@link #verify()}) is "no timeout".

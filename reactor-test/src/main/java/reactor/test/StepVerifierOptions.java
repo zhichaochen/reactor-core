@@ -22,6 +22,7 @@ import java.util.Map;
 import java.util.function.Function;
 import java.util.function.Supplier;
 
+import reactor.core.publisher.Flux;
 import reactor.core.publisher.Signal;
 import reactor.test.ValueFormatters.Extractor;
 import reactor.test.ValueFormatters.ToStringConverter;
@@ -58,7 +59,12 @@ public class StepVerifierOptions {
 		return new StepVerifierOptions();
 	}
 
-	private StepVerifierOptions() { } //disable constructor
+	protected StepVerifierOptions() { } //disable constructor
+
+
+	public <T> Function<Flux<T>, StepVerifier.FirstStep<T>> test() {
+		return f -> StepVerifier.create(f, this);
+	}
 
 	/**
 	 * Activate or deactivate the {@link StepVerifier} check of request amount

@@ -2210,4 +2210,25 @@ public class StepVerifierTests {
 				.withMessage("Unexpected error during a no-event expectation: java.lang.IllegalStateException: boom")
 				.withCause(new IllegalStateException("boom"));
 	}
+
+	@Test
+	public void useStepVerifierWithOptionsAs() {
+		Flux.range(1, 3)
+		    .as(StepVerifierOptions.create().initialRequest(2).test())
+		    .expectNext(1, 2)
+		    .thenRequest(1)
+		    .expectNext(3)
+		    .verifyComplete();
+
+
+		Flux.range(1, 3)
+		    .as(StepVerifier::withOptions)
+		    .initialRequest(2)
+		    .scenarioName("foo")
+		    .withTestScenario()
+		    .expectNext(1, 2)
+		    .thenRequest(1)
+		    .expectNext(3)
+		    .verifyComplete();
+	}
 }
