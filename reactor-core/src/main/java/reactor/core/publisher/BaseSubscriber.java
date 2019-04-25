@@ -49,11 +49,7 @@ import reactor.core.Exceptions;
  * See https://github.com/reactor/reactor-core/issues/1673 for a
  * complete description of each element codified and the associated values.
  *
- * {REQUEST_SHAPING}: NONE
- * {PREFETCH}: NONE
- * {BUFFERING}: NONE
  * {GEOMETRY}: SUBSCRIBER
- * {SOURCE}: ANY
  */
 public abstract class BaseSubscriber<T> implements CoreSubscriber<T>, Subscription,
                                                    Disposable {

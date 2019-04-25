@@ -55,11 +55,7 @@ import reactor.util.annotation.Nullable;
  * See https://github.com/reactor/reactor-core/issues/1673 for a
  * complete description of each element codified and the associated values.
  *
- * {REQUEST_SHAPING}: NONE
- * {PREFETCH}: NONE
- * {BUFFERING}: NONE
  * {GEOMETRY}: SUBSCRIBER
- * {SOURCE}: ANY
  * {OTHER}: blocking
  */
 final class BlockingOptionalMonoSubscriber<T> extends CountDownLatch
