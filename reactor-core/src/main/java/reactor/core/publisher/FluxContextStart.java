@@ -33,7 +33,7 @@ import reactor.util.context.Context;
  * {REQUEST_SHAPING}: NONE
  * {PREFETCH}: NONE
  * {BUFFERING}: NONE
- * {GEOMETRY}: 1-1
+ * {GEOMETRY}: SIDE-EFFECT
  * {SOURCE}: FLUX
  * {OTHER}: serviceability
  */

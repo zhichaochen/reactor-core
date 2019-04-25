@@ -35,7 +35,7 @@ import reactor.util.annotation.Nullable;
  *
  * {REQUEST_SHAPING}: NONE
  * {PREFETCH}: NONE
- * {BUFFERING}: NONE
+ * {BUFFERING}: OPERATION-VALUE
  * {GEOMETRY}: 1-1
  * {SOURCE}: FLUX
  */
