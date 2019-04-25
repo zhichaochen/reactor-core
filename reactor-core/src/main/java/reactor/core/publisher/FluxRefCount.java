@@ -43,7 +43,7 @@ import reactor.util.annotation.Nullable;
  * {PREFETCH}: NONE
  * {BUFFERING}: NONE
  * {GEOMETRY}: FAN-OUT
- * {SOURCE}: CONNECTABLE
+ * {SOURCE}: CONNECTABLEFLUX
  */
 final class FluxRefCount<T> extends Flux<T> implements Scannable, Fuseable {
 

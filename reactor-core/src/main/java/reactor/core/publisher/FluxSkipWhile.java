@@ -41,7 +41,6 @@ import reactor.util.context.Context;
  * {BUFFERING}: NONE
  * {GEOMETRY}: 1-1
  * {SOURCE}: FLUX
- * {OTHER}: companion
  */
 final class FluxSkipWhile<T> extends FluxOperator<T, T> {
 

@@ -55,7 +55,7 @@ import reactor.util.context.Context;
  * {BUFFERING}: OPERATION-MULTIPLE
  * ^ keeping track of open groups
  * {BUFFERING}: INNER-BACKPRESSURE
- * {GEOMETRY}: 1-INNERS-N
+ * {GEOMETRY}: WINDOWS
  * {SOURCE}: FLUX
  */
 final class FluxGroupBy<T, K, V> extends FluxOperator<T, GroupedFlux<K, V>>

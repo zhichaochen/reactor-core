@@ -30,7 +30,7 @@ import reactor.core.CoreSubscriber;
  * See https://github.com/reactor/reactor-core/issues/1673 for a
  * complete description of each element codified and the associated values.
  *
- * {REQUEST_SHAPING}: DIVIDE
+ * {REQUEST_SHAPING}: MAXIMUM
  * {PREFETCH}: NONE
  * {BUFFERING}: NONE
  * {GEOMETRY}: 1-1
