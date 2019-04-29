@@ -54,6 +54,7 @@ import reactor.core.Fuseable;
 import reactor.core.Scannable;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Hooks;
+import reactor.core.publisher.InnerSubscription;
 import reactor.core.publisher.Mono;
 import reactor.core.publisher.Operators;
 import reactor.core.publisher.Signal;
@@ -1257,8 +1258,9 @@ final class DefaultStepVerifierBuilder<T>
 		}
 
 		void doCancel() {
-			cancel();
-			this.completeLatch.countDown();
+			if (!(cancel() instanceof InnerSubscription)) {
+				this.completeLatch.countDown();
+			}
 		}
 
 		@Override

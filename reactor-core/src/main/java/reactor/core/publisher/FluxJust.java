@@ -88,7 +88,7 @@ final class FluxJust<T> extends Flux<T>
 	}
 
 	static final class WeakScalarSubscription<T> implements QueueSubscription<T>,
-	                                                        InnerProducer<T>{
+	                                                        InnerSubscription<T> {
 
 		boolean terminado;
 		final T                     value;
@@ -115,6 +115,7 @@ final class FluxJust<T> extends Flux<T>
 		@Override
 		public void cancel() {
 			terminado = true;
+			actual.onCancelled();
 		}
 
 		@Override
@@ -160,7 +161,7 @@ final class FluxJust<T> extends Flux<T>
 		public Object scanUnsafe(Attr key) {
 			if (key == Attr.TERMINATED || key == Attr.CANCELLED) return terminado;
 
-			return InnerProducer.super.scanUnsafe(key);
+			return InnerSubscription.super.scanUnsafe(key);
 		}
 	}
 }
