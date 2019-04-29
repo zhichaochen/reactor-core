@@ -169,7 +169,7 @@ class SpscArrayQueueCold<T> extends AtomicReferenceArray<T> {
 
 	final int mask;
 	
-	public SpscArrayQueueCold(int length) {
+	SpscArrayQueueCold(int length) {
 		super(length);
 		mask = length - 1;
 	}
