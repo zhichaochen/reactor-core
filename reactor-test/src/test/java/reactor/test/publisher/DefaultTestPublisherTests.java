@@ -102,6 +102,9 @@ public class DefaultTestPublisherTests {
 			public void onComplete() {
 				count.incrementAndGet();
 			}
+
+			@Override
+			public void onCancelled() {}
 		};
 
 		publisher.subscribe(subscriber);
@@ -132,6 +135,9 @@ public class DefaultTestPublisherTests {
 			public void onComplete() {
 				count.incrementAndGet();
 			}
+
+			@Override
+			public void onCancelled() {}
 		};
 	}
 

@@ -238,6 +238,9 @@ public class ConsistentProcessorTests {
 			finish(null);
 		}
 
+		@Override
+		public void onCancelled() { }
+
 		void finish(Subscription s) {
 			if (s != null) {
 				s.cancel();

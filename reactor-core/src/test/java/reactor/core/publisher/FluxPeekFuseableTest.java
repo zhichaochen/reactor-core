@@ -975,6 +975,11 @@ public class FluxPeekFuseableTest {
 		public Context currentContext() {
 			return context;
 		}
+
+		@Override
+		public void onCancelled() {
+			//TODO add assert cancellation ack
+		}
 	}
 
 	static class AssertQueueSubscription<T> implements Fuseable.QueueSubscription<T> {

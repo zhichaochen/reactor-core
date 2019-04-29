@@ -87,4 +87,10 @@ final class MonoToCompletableFuture<T> extends CompletableFuture<T> implements C
 			complete(null);
 		}
 	}
+
+	@Override
+	public void onCancelled() {
+		//NO-OP not translatable in the future world, as we work the other way around
+		//(we cancel the source if Future is cancelled)
+	}
 }

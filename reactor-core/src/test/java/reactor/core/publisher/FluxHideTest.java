@@ -60,6 +60,9 @@ public class FluxHideTest {
 			public void onComplete() {
 
 			}
+
+			@Override
+			public void onCancelled() {}
 		};
 
 		FluxHide.SuppressFuseableSubscriber<Integer> sfs = Flux.just(1, 2, 3)
@@ -103,6 +106,9 @@ public class FluxHideTest {
 			public void onComplete() {
 
 			}
+
+			@Override
+			public void onCancelled() {}
 		};
 
 		FluxHide.SuppressFuseableSubscriber sfs = Flux.<Integer>error(new Exception("test"))

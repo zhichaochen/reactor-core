@@ -409,6 +409,9 @@ public class FluxGroupByTest extends
 			    public void onComplete() {
 				    ts3.onComplete();
 			    }
+
+			    @Override
+			    public void onCancelled() {}
 		    });
 
 		ts1.await(Duration.ofSeconds(5));
@@ -467,6 +470,11 @@ public class FluxGroupByTest extends
 			    @Override
 			    public void onComplete() {
 				    ts3.onComplete();
+			    }
+
+			    @Override
+			    public void onCancelled() {
+			    	ts3.onCancelled();
 			    }
 		    });
 
@@ -536,6 +544,9 @@ public class FluxGroupByTest extends
 			    public void onComplete() {
 				    ts3.onComplete();
 			    }
+
+			    @Override
+			    public void onCancelled() {}
 		    });
 
 		if (!ts1.await(Duration.ofSeconds(5))
@@ -604,6 +615,11 @@ public class FluxGroupByTest extends
 			    public void onComplete() {
 				    ts3.onComplete();
 			    }
+
+			    @Override
+			    public void onCancelled() {
+			    	ts3.onCancelled();
+			    }
 		    });
 
 		ts1.await(Duration.ofSeconds(5));
@@ -667,6 +683,9 @@ public class FluxGroupByTest extends
 			    public void onComplete() {
 				    ts3.onComplete();
 			    }
+
+			    @Override
+			    public void onCancelled() {}
 		    });
 
 		ts1.await(Duration.ofSeconds(5));
@@ -725,6 +744,11 @@ public class FluxGroupByTest extends
 			    @Override
 			    public void onComplete() {
 				    ts3.onComplete();
+			    }
+
+			    @Override
+			    public void onCancelled() {
+				    ts3.onCancelled();
 			    }
 		    });
 

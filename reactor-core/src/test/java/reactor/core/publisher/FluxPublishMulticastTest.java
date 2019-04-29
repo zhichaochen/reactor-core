@@ -257,9 +257,10 @@ public class FluxPublishMulticastTest extends FluxOperatorTest<String, String> {
 			}
 
 			@Override
-			public void onComplete() {
+			public void onComplete() {}
 
-			}
+			@Override
+			public void onCancelled() {}
 		};
 
 		FluxPublishMulticast.CancelMulticaster<Integer> sfs = new FluxPublishMulticast.CancelMulticaster<>(s, null);

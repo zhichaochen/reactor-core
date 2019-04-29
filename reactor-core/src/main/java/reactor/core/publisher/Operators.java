@@ -1313,6 +1313,12 @@ public abstract class Operators {
 			Throwable e = new IllegalStateException("onComplete should not be used");
 			log.error("Unexpected call to Operators.emptySubscriber()", e);
 		}
+
+		@Override
+		public void onCancelled() {
+			Throwable e = new IllegalStateException("onCancelled should not be used");
+			log.error("Unexpected call to Operators.emptySubscriber()", e);
+		}
 	};
 	//
 
@@ -2172,6 +2178,11 @@ public abstract class Operators {
 		public void onComplete() {
 
 		}
+
+		@Override
+		public void onCancelled() {
+
+		}
 	}
 
 	/**
@@ -2212,6 +2223,11 @@ public abstract class Operators {
 		@Override
 		public void onComplete() {
 			delegate.onComplete();
+		}
+
+		@Override
+		public void onCancelled() {
+			delegate.onCancelled();
 		}
 
 		@Override

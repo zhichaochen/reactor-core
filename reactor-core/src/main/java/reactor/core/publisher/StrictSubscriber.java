@@ -126,6 +126,11 @@ final class StrictSubscriber<T> implements Scannable, CoreSubscriber<T>, Subscri
 	}
 
 	@Override
+	public void onCancelled() {
+		//NO-OP for non-CoreSubscriber
+	}
+
+	@Override
 	public void request(long n) {
 		if (n <= 0) {
 			cancel();

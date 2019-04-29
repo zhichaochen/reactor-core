@@ -459,6 +459,11 @@ abstract class EventLoopProcessor<IN> extends FluxProcessor<IN, IN>
 	}
 
 	@Override
+	public void onCancelled() {
+		//TODO
+	}
+
+	@Override
 	protected boolean serializeAlways() {
 		return !contextClassLoader.multiproducer;
 	}

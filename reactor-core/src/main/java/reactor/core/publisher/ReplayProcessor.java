@@ -421,6 +421,11 @@ public final class ReplayProcessor<T> extends FluxProcessor<T, T>
 	}
 
 	@Override
+	public void onCancelled() {
+		//TODO
+	}
+
+	@Override
 	public Context currentContext() {
 		return Operators.multiSubscribersContext(subscribers);
 	}

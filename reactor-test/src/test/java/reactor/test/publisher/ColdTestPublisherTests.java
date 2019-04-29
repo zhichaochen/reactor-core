@@ -146,6 +146,9 @@ public class ColdTestPublisherTests {
 			public void onComplete() {
 				count.incrementAndGet();
 			}
+
+			@Override
+			public void onCancelled() {}
 		};
 
 		publisher.subscribe(subscriber);

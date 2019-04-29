@@ -885,6 +885,9 @@ public class FluxUsingWhenTest {
 			public void onComplete() {
 				subscription.cancel();
 			}
+
+			@Override
+			public void onCancelled() {}
 		});
 
 		assertThat(cleanupCount.sum()).isEqualTo(10);
@@ -918,6 +921,9 @@ public class FluxUsingWhenTest {
 
 			@Override
 			public void onComplete() {}
+
+			@Override
+			public void onCancelled() {}
 		});
 
 		assertThat(cleanupCount.sum()).isEqualTo(100);
@@ -969,6 +975,9 @@ public class FluxUsingWhenTest {
 
 			@Override
 			public void onComplete() {}
+
+			@Override
+			public void onCancelled() {}
 		});
 
 		Thread.sleep(300);
@@ -1022,6 +1031,9 @@ public class FluxUsingWhenTest {
 
 			@Override
 			public void onComplete() {}
+
+			@Override
+			public void onCancelled() {}
 		});
 
 		Thread.sleep(300);

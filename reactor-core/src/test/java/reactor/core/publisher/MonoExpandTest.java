@@ -377,6 +377,11 @@ public class MonoExpandTest {
 			public void onComplete() {
 				ts.onComplete();
 			}
+
+			@Override
+			public void onCancelled() {
+				ts.onCancelled();
+			}
 		};
 
 		Mono.just(1)

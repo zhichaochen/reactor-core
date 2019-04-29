@@ -44,5 +44,4 @@ interface InnerProducer<O>
 		}
 		return null;
 	}
-
 }

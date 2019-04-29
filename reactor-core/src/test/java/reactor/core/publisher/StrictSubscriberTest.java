@@ -129,9 +129,10 @@ public class StrictSubscriberTest {
 			    }
 
 			    @Override
-			    public void onComplete() {
+			    public void onComplete() {}
 
-			    }
+			    @Override
+			    public void onCancelled() {}
 		    });
 
 		Assert.assertNull("Error: " + e.get(), e.get());
@@ -165,6 +166,11 @@ public class StrictSubscriberTest {
 
 			    @Override
 			    public void onComplete() {
+
+			    }
+
+			    @Override
+			    public void onCancelled() {
 
 			    }
 		    });

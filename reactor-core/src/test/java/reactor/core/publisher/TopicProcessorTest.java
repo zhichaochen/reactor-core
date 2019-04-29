@@ -238,6 +238,9 @@ public class TopicProcessorTest {
 			public void onComplete() {
 				//latch.countDown()
 			}
+
+			@Override
+			public void onCancelled() {}
 		};
 	}
 

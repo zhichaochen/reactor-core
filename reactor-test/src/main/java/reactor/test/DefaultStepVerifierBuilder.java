@@ -1256,6 +1256,16 @@ final class DefaultStepVerifierBuilder<T>
 			return s;
 		}
 
+		void doCancel() {
+			cancel();
+			this.completeLatch.countDown();
+		}
+
+		@Override
+		public void onCancelled() {
+			completeLatch.countDown();
+		}
+
 		/** Cancels this subscriber if the actual signal is null or not a complete/error */
 		final void maybeCancel(@Nullable Signal<T> actualSignal) {
 			if (actualSignal == null || (!actualSignal.isOnComplete() && !actualSignal.isOnError())) {
@@ -1568,11 +1578,6 @@ final class DefaultStepVerifierBuilder<T>
 				}
 			}
 			return false;
-		}
-
-		void doCancel() {
-			cancel();
-			this.completeLatch.countDown();
 		}
 
 		void waitTaskEvent() {

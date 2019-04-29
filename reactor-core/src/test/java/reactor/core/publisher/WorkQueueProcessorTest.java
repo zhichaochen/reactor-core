@@ -195,6 +195,9 @@ public class WorkQueueProcessorTest {
 			              public void onSubscribe(Subscription s) {
 				              s.request(Long.MAX_VALUE);
 			              }
+
+			              @Override
+			              public void onCancelled() {}
 		              });
 		FluxSink<String> emitter = queueProcessor.sink();
 
@@ -1529,6 +1532,9 @@ public class WorkQueueProcessorTest {
 		public void onSubscribe(Subscription s) {
 			s.request(Long.MAX_VALUE);
 		}
+
+		@Override
+		public void onCancelled() {}
 	}
 
 	@Test

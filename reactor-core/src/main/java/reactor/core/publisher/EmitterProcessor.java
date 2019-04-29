@@ -290,6 +290,11 @@ public final class EmitterProcessor<T> extends FluxProcessor<T, T> {
 	}
 
 	@Override
+	public void onCancelled() {
+		//TODO
+	}
+
+	@Override
 	@Nullable
 	public Throwable getError() {
 		return error;

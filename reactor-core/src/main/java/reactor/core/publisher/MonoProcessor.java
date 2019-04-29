@@ -137,6 +137,11 @@ public final class MonoProcessor<O> extends Mono<O>
 	}
 
 	@Override
+	public void onCancelled() {
+		//TODO
+	}
+
+	@Override
 	@SuppressWarnings("unchecked")
 	public void dispose() {
 		Subscription s = UPSTREAM.getAndSet(this, Operators.cancelledSubscription());

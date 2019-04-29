@@ -58,4 +58,6 @@ public interface CoreSubscriber<T> extends Subscriber<T> {
 	 */
 	@Override
 	void onSubscribe(Subscription s);
+
+	void onCancelled();
 }

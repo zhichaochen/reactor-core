@@ -31,4 +31,9 @@ interface InnerOperator<I, O>
 	default Context currentContext() {
 		return actual().currentContext();
 	}
+
+	@Override
+	default void onCancelled() {
+		actual().onCancelled();
+	}
 }

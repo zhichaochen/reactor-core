@@ -339,6 +339,11 @@ final class FluxTimeout<T, U, V> extends FluxOperator<T, T> {
 		public void onComplete() {
 			actual.onComplete();
 		}
+
+		@Override
+		public void onCancelled() {
+			actual.onCancelled();
+		}
 	}
 
 	interface IndexedCancellable {

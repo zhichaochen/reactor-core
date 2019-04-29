@@ -118,7 +118,12 @@ public abstract class JdkFlowAdapter {
 			subscriber.onComplete();
 		}
 
-		@Override
+	    @Override
+	    public void onCancelled() {
+		    //NO-OP as Flow.Subscriber doesn't expect cancellation acknowledgements
+	    }
+
+	    @Override
 		public void request(long n) {
 		    subscription.request(n);
 		}

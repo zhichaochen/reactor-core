@@ -104,6 +104,11 @@ final class FluxFuseableExceptionOnPoll<T> extends FluxOperator<T, T>
 		}
 
 		@Override
+		public void onCancelled() {
+			actual.onCancelled();
+		}
+
+		@Override
 		public int requestFusion(int requestedMode) {
 			return qs.requestFusion(requestedMode);
 		}

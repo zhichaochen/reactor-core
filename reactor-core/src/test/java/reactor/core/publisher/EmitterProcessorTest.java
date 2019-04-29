@@ -146,6 +146,9 @@ public class EmitterProcessorTest {
 				System.out.println("completed!");
 				latch.countDown();
 			}
+
+			@Override
+			public void onCancelled() {}
 		});
 
 		Flux.range(1, 10)
@@ -202,6 +205,9 @@ public class EmitterProcessorTest {
 				System.out.println("completed!");
 				//latch.countDown();
 			}
+
+			@Override
+			public void onCancelled() {}
 		});
 
 		for (int i = 0; i < elements; i++) {
@@ -353,6 +359,9 @@ public class EmitterProcessorTest {
 			public void onComplete() {
 
 			}
+
+			@Override
+			public void onCancelled() {}
 		});
 		s.next(5);
 		s.next(6);
@@ -843,6 +852,9 @@ public class EmitterProcessorTest {
 			public void onComplete() {
 
 			}
+
+			@Override
+			public void onCancelled() {}
 		});
 		sink.next(5);
 		sink.next(6);

@@ -837,6 +837,11 @@ public class AssertSubscriber<T>
 		}
 	}
 
+	@Override
+	public void onCancelled() {
+		//TODO add an assert for onCancelled / cancellation ack?
+	}
+
 	final boolean isCancelled() {
 		return s == Operators.cancelledSubscription();
 	}

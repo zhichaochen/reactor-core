@@ -53,4 +53,9 @@ interface InnerConsumer<I>
 		}
 		return stripped;
 	}
+
+	@Override
+	default void onCancelled() {
+
+	}
 }

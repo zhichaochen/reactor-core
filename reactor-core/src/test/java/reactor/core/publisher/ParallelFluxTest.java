@@ -1030,6 +1030,8 @@ public class ParallelFluxTest {
 			public void onComplete() {
 				latch.countDown();
 			}
+
+			@Override public void onCancelled() { }
 		});
 
 		latch.await(1, TimeUnit.SECONDS);

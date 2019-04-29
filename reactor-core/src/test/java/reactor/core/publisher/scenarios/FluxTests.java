@@ -1404,6 +1404,10 @@ public class FluxTests extends AbstractReactorTest {
 			log.info("fluxion complete");
 		}
 
+		@Override
+		public void onCancelled() {
+			//TODO log or something?
+		}
 	}
 
 	/**

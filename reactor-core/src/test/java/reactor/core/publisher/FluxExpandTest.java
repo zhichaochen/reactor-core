@@ -398,6 +398,10 @@ public class FluxExpandTest {
 			public void onComplete() {
 				ts.onComplete();
 			}
+
+
+			@Override
+			public void onCancelled() {}
 		};
 
 		Flux.just(1)

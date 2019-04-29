@@ -168,6 +168,11 @@ public final class DirectProcessor<T> extends FluxProcessor<T, T> {
 	}
 
 	@Override
+	public void onCancelled() {
+		//TODO
+	}
+
+	@Override
 	public void subscribe(CoreSubscriber<? super T> actual) {
 		Objects.requireNonNull(actual, "subscribe");
 

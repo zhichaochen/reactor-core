@@ -70,6 +70,11 @@ final class DelegateProcessor<IN, OUT> extends FluxProcessor<IN, OUT> {
 	}
 
 	@Override
+	public void onCancelled() {
+		//TODO
+	}
+
+	@Override
 	public void subscribe(CoreSubscriber<? super OUT> actual) {
 		Objects.requireNonNull(actual, "subscribe");
 		downstream.subscribe(actual);
