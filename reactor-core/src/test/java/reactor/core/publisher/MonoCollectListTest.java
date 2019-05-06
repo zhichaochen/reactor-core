@@ -18,14 +18,17 @@ package reactor.core.publisher;
 import java.time.Duration;
 import java.util.Comparator;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 
+import org.awaitility.Awaitility;
 import org.junit.Test;
 import org.reactivestreams.Subscription;
 import reactor.core.CoreSubscriber;
 import reactor.core.Scannable;
 import reactor.core.publisher.MonoCollectList.MonoCollectListSubscriber;
+import reactor.test.DiscardUtils;
 import reactor.test.StepVerifier;
 import reactor.test.publisher.TestPublisher;
 import reactor.test.subscriber.AssertSubscriber;
@@ -255,6 +258,52 @@ public class MonoCollectListTest {
 			}
 		}
 		LOGGER.info("discarded twice or more: {}", doubleDiscardCounter.get());
+	}
+
+	@Test
+	public void onNextAfterCancelDiscarded() {
+		Context discardingContext = Operators.enableOnDiscard(null, o -> ((AtomicBoolean) o).set(true));
+		AssertSubscriber<List<AtomicBoolean>> testSubscriber = new AssertSubscriber<>(discardingContext);
+		final MonoCollectListSubscriber<AtomicBoolean> subscriber = new MonoCollectListSubscriber<>(testSubscriber);
+
+		AtomicBoolean extraneous = new AtomicBoolean();
+
+		subscriber.onSubscribe(DiscardUtils.lateOnNextSubscription(subscriber, extraneous, Duration.ofMillis(100), true));
+
+		testSubscriber.cancel();
+
+		Awaitility.await()
+		          .pollDelay(100, TimeUnit.MILLISECONDS)
+		          .untilAsserted(() -> assertThat(extraneous).as("post-cancel onNext discarded").isTrue());
+
+		testSubscriber.assertNoValues();
+	}
+
+	@Test
+	public void onCancelledForVanillaSubscription() {
+		AssertSubscriber<List<AtomicBoolean>> testSubscriber = new AssertSubscriber<>();
+		final MonoCollectListSubscriber<AtomicBoolean> subscriber = new MonoCollectListSubscriber<>(testSubscriber);
+
+		subscriber.onSubscribe(Operators.emptySubscription());
+
+		testSubscriber.cancel();
+		testSubscriber.assertOnCancelled();
+	}
+
+	@Test
+	public void onCancelledForAcknowledgingSubscription() {
+		AssertSubscriber<List<AtomicBoolean>> testSubscriber = new AssertSubscriber<>();
+		final MonoCollectListSubscriber<AtomicBoolean> subscriber = new MonoCollectListSubscriber<>(testSubscriber);
+
+		Subscription sub = DiscardUtils.acknowledgingSubscription(subscriber, Duration.ofMillis(100));
+
+		subscriber.onSubscribe(sub);
+
+		testSubscriber.cancel();
+		testSubscriber.assertNotOnCancelled();
+		Awaitility.await()
+		          .pollDelay(100, TimeUnit.MILLISECONDS)
+		          .untilAsserted(testSubscriber::assertOnCancelled);
 	}
 
 }
