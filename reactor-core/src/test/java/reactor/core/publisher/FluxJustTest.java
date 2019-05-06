@@ -89,6 +89,16 @@ public class FluxJustTest {
     }
 
     @Test
+    public void cancelAckSource() {
+	    final AssertSubscriber<String> actual = AssertSubscriber.create(0);
+	    Flux.just("foo")
+	        .subscribe(actual);
+
+	    actual.cancel();
+	    actual.assertOnCancelled();
+    }
+
+    @Test
     public void scanOperator() {
     	FluxJust<String> s = new FluxJust<>("foo");
     	assertThat(s.scan(Scannable.Attr.BUFFERED)).isEqualTo(1);

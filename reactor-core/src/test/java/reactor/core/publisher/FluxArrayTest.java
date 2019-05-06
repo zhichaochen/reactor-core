@@ -194,4 +194,14 @@ public class FluxArrayTest {
 		test.cancel();
 		assertThat(test.scan(Scannable.Attr.CANCELLED)).isTrue();
 	}
+
+	@Test
+	public void cancelAckSource() {
+		final AssertSubscriber<String> actual = AssertSubscriber.create(0);
+		Flux.just("foo", "bar", "baz")
+		    .subscribe(actual);
+
+		actual.cancel();
+		actual.assertOnCancelled();
+	}
 }
