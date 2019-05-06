@@ -157,9 +157,6 @@ final class MonoCollectList<T> extends MonoFromFluxOperator<T, List<T>> implemen
 				Subscription s = this.s;
 				s.cancel();
 				Operators.onDiscardMultiple(l, actual.currentContext());
-				if (!(s instanceof InnerSubscription)) {
-					actual.onCancelled();
-				}
 			}
 		}
 

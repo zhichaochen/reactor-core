@@ -268,7 +268,7 @@ public class MonoCollectListTest {
 
 		AtomicBoolean extraneous = new AtomicBoolean();
 
-		subscriber.onSubscribe(DiscardUtils.lateOnNextSubscription(subscriber, extraneous, Duration.ofMillis(100), true));
+		subscriber.onSubscribe(DiscardUtils.lateOnNextSubscription(subscriber, extraneous, Duration.ofMillis(100)));
 
 		testSubscriber.cancel();
 
@@ -277,33 +277,6 @@ public class MonoCollectListTest {
 		          .untilAsserted(() -> assertThat(extraneous).as("post-cancel onNext discarded").isTrue());
 
 		testSubscriber.assertNoValues();
-	}
-
-	@Test
-	public void onCancelledForVanillaSubscription() {
-		AssertSubscriber<List<AtomicBoolean>> testSubscriber = new AssertSubscriber<>();
-		final MonoCollectListSubscriber<AtomicBoolean> subscriber = new MonoCollectListSubscriber<>(testSubscriber);
-
-		subscriber.onSubscribe(Operators.emptySubscription());
-
-		testSubscriber.cancel();
-		testSubscriber.assertOnCancelled();
-	}
-
-	@Test
-	public void onCancelledForAcknowledgingSubscription() {
-		AssertSubscriber<List<AtomicBoolean>> testSubscriber = new AssertSubscriber<>();
-		final MonoCollectListSubscriber<AtomicBoolean> subscriber = new MonoCollectListSubscriber<>(testSubscriber);
-
-		Subscription sub = DiscardUtils.acknowledgingSubscription(subscriber, Duration.ofMillis(100));
-
-		subscriber.onSubscribe(sub);
-
-		testSubscriber.cancel();
-		testSubscriber.assertNotOnCancelled();
-		Awaitility.await()
-		          .pollDelay(100, TimeUnit.MILLISECONDS)
-		          .untilAsserted(testSubscriber::assertOnCancelled);
 	}
 
 }
