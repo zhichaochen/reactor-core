@@ -54,7 +54,9 @@ public class VirtualTimeScheduler implements Scheduler {
 	 * {@link Schedulers} factories.
 	 */
 	public static VirtualTimeScheduler create() {
-		return new VirtualTimeScheduler();
+		VirtualTimeScheduler instance = new VirtualTimeScheduler();
+		instance.start();
+		return instance;
 	}
 
 	/**
@@ -65,7 +67,7 @@ public class VirtualTimeScheduler implements Scheduler {
 	 * @return the VirtualTimeScheduler that was created and set through the factory
 	 */
 	public static VirtualTimeScheduler getOrSet() {
-		return enable(VirtualTimeScheduler::new, false);
+		return enable(VirtualTimeScheduler::create, false);
 	}
 
 	/**
@@ -132,7 +134,7 @@ public class VirtualTimeScheduler implements Scheduler {
 			}
 			VirtualTimeScheduler newS = schedulerSupplier.get();
 			if (newS == CURRENT.get()) {
-				return newS; //nothing to do, it has already been set in the past
+				return newS; //nothing to do, it has already been set and started in the past
 			}
 
 			if (CURRENT.compareAndSet(s, newS)) {
