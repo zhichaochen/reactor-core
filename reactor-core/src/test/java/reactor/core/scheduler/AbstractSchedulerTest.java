@@ -74,9 +74,26 @@ public abstract class AbstractSchedulerTest {
 
 	protected boolean shouldCheckWorkerTimeScheduling() { return true; }
 
+	protected boolean shouldCheckSupportRestart() { return true; }
+
 	@Before
 	public void checkNotCached() {
 		assertThat(scheduler()).isNotInstanceOf(Schedulers.CachedScheduler.class);
+	}
+
+	@Test
+	public void restartSupport() {
+		boolean supportsRestart = shouldCheckSupportRestart();
+		Scheduler s = scheduler();
+		s.dispose();
+		s.start();
+
+		if (supportsRestart) {
+			assertThat(s.isDisposed()).as("restart supported").isFalse();
+		}
+		else {
+			assertThat(s.isDisposed()).as("restart not supported").isTrue();
+		}
 	}
 
 	@Test(timeout = 10000)
