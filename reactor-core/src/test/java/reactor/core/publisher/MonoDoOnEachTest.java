@@ -69,7 +69,7 @@ public class MonoDoOnEachTest {
 				new MonoDoOnEach<>(source, s -> { });
 
 		test.subscribe();
-		Mockito.verify(source).subscribe(argumentCaptor.capture());
+		Mockito.verify(source).subscribeOrReturn(argumentCaptor.capture());
 
 		assertThat(argumentCaptor.getValue()).isInstanceOf(FluxDoOnEach.DoOnEachSubscriber.class);
 	}
