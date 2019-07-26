@@ -16,13 +16,12 @@
 
 package reactor.core.publisher;
 
-import org.reactivestreams.Publisher;
 import reactor.core.CorePublisher;
 import reactor.core.CoreSubscriber;
 import reactor.core.Scannable;
 import reactor.util.annotation.Nullable;
 
-abstract class InternalConnectableFluxOperator<I, O> extends ConnectableFlux<O> implements Scannable, CoreOperator<O, I> {
+abstract class InternalConnectableFluxOperator<I, O> extends ConnectableFlux<O> implements Scannable {
 
 	final ConnectableFlux<I> source;
 
@@ -36,35 +35,31 @@ abstract class InternalConnectableFluxOperator<I, O> extends ConnectableFlux<O> 
 	}
 
 	@Override
+	@SuppressWarnings("unchecked")
 	public final void subscribe(CoreSubscriber<? super O> subscriber) {
-		Publisher publisher = this;
+		CorePublisher publisher = this;
+		CorePublisher next = publisher;
+		CoreSubscriber liftedSubscriber;
+		for(;;) {
+			liftedSubscriber = next.subscribeOrReturn(subscriber);
 
-		// do-while since `this` already implements `CoreOperator`
-		do {
-			CoreOperator operator = (CoreOperator) publisher;
-
-			subscriber = operator.subscribeOrReturn(subscriber);
-			if (subscriber == null) {
-				// null means "I will subscribe myself", returning...
+			if (liftedSubscriber == null) {
 				return;
 			}
-			publisher = operator.source();
-		}
-		while (publisher instanceof CoreOperator);
 
-		if (publisher instanceof CorePublisher) {
-			((CorePublisher) publisher).subscribe(subscriber);
-		}
-		else {
-			publisher.subscribe(subscriber);
+			publisher = next;
+			next = publisher.source();
+
+			if (next == null) {
+				publisher.subscribe(subscriber);
+				return;
+			}
+			subscriber = liftedSubscriber;
 		}
 	}
 
 	@Override
-	public abstract CoreSubscriber<? super I> subscribeOrReturn(CoreSubscriber<? super O> actual);
-
-	@Override
-	public final Publisher<? extends I> source() {
+	public final CorePublisher<? extends I> source() {
 		return source;
 	}
 

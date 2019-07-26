@@ -17,12 +17,9 @@
 package reactor.core.publisher;
 
 import org.reactivestreams.Publisher;
-import reactor.core.CorePublisher;
-import reactor.core.CoreSubscriber;
 import reactor.core.Scannable;
-import reactor.util.annotation.Nullable;
 
-abstract class InternalFluxOperator<I, O> extends FluxOperator<I, O> implements Scannable, CoreOperator<O, I> {
+public abstract class InternalFluxOperator<I, O> extends FluxOperator<I, O> implements Scannable {
 
 	/**
 	 * Build a {@link InternalFluxOperator} wrapper around the passed parent {@link Publisher}
@@ -32,47 +29,4 @@ abstract class InternalFluxOperator<I, O> extends FluxOperator<I, O> implements 
 	protected InternalFluxOperator(Flux<? extends I> source) {
 		super(source);
 	}
-
-	@Override
-	@SuppressWarnings("unchecked")
-	public final void subscribe(CoreSubscriber<? super O> subscriber) {
-		Publisher publisher = this;
-
-		// do-while since `this` already implements `CoreOperator`
-		do {
-			CoreOperator operator = (CoreOperator) publisher;
-
-			subscriber = operator.subscribeOrReturn(subscriber);
-			if (subscriber == null) {
-				// null means "I will subscribe myself", returning...
-				return;
-			}
-			publisher = operator.source();
-		}
-		while (publisher instanceof CoreOperator);
-
-		if (publisher instanceof CorePublisher) {
-			((CorePublisher) publisher).subscribe(subscriber);
-		}
-		else {
-			publisher.subscribe(subscriber);
-		}
-	}
-
-	@Override
-	public abstract CoreSubscriber<? super I> subscribeOrReturn(CoreSubscriber<? super O> actual);
-
-	@Override
-	public final CorePublisher<? extends I> source() {
-		return source;
-	}
-
-	@Override
-	@Nullable
-	public Object scanUnsafe(Attr key) {
-		if (key == Attr.PREFETCH) return getPrefetch();
-		if (key == Attr.PARENT) return source;
-		return null;
-	}
-
 }

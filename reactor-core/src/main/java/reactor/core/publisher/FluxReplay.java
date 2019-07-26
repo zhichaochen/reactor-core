@@ -42,7 +42,7 @@ import reactor.util.context.Context;
  * @param <T>
  * @see <a href="https://github.com/reactor/reactive-streams-commons">Reactive-Streams-Commons</a>
  */
-final class FluxReplay<T> extends ConnectableFlux<T> implements Scannable, Fuseable, CoreOperator<T, T> {
+final class FluxReplay<T> extends ConnectableFlux<T> implements Scannable, Fuseable {
 
 	final CorePublisher<T>   source;
 	final int            history;

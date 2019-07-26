@@ -202,7 +202,7 @@ final class FluxRetryWhen<T> extends InternalFluxOperator<T, T> {
 	}
 
 	static final class RetryWhenOtherSubscriber extends Flux<Throwable>
-	implements InnerConsumer<Object>, CoreOperator<Throwable, Throwable> {
+	implements InnerConsumer<Object> {
 		RetryWhenMainSubscriber<?> main;
 
 		final DirectProcessor<Throwable> completionSignal = new DirectProcessor<>();

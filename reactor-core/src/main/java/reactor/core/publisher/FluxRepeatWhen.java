@@ -198,7 +198,7 @@ final class FluxRepeatWhen<T> extends InternalFluxOperator<T, T> {
 	}
 
 	static final class RepeatWhenOtherSubscriber extends Flux<Long>
-			implements InnerConsumer<Object>, CoreOperator<Long, Long> {
+			implements InnerConsumer<Object> {
 
 		RepeatWhenMainSubscriber<?> main;
 
