@@ -38,7 +38,7 @@ import static reactor.core.publisher.FluxMetrics.resolveTags;
  * @author Simon Baslé
  * @author Stephane Maldini
  */
-final class MonoMetricsFuseable<T> extends InternalMonoOperator<T, T> implements Fuseable {
+final class MonoMetricsFuseable<T> extends MonoOperator<T, T> implements Fuseable {
 
 	final String name;
 	final Tags   tags;

@@ -41,7 +41,7 @@ import static reactor.core.publisher.FluxMetrics.*;
  * @author Simon Baslé
  * @author Stephane Maldini
  */
-final class FluxMetricsFuseable<T> extends InternalFluxOperator<T, T> implements Fuseable {
+final class FluxMetricsFuseable<T> extends FluxOperator<T, T> implements Fuseable {
 
 	final String        name;
 	final Tags          tags;

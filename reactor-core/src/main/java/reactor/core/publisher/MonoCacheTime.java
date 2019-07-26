@@ -37,7 +37,7 @@ import reactor.util.context.Context;
  *
  * @author Simon Baslé
  */
-class MonoCacheTime<T> extends InternalMonoOperator<T, T> implements Runnable {
+class MonoCacheTime<T> extends MonoOperator<T, T> implements Runnable {
 
 	private static final Logger LOGGER = Loggers.getLogger(MonoCacheTime.class);
 

@@ -40,22 +40,20 @@ import reactor.util.context.Context;
  *
  * @author Simon Baslé
  */
-final class MonoDelayUntil<T> extends Mono<T> implements Scannable, CoreOperator<T, T> {
-
-	final Mono<T> source;
+final class MonoDelayUntil<T> extends MonoOperator<T, T> implements Scannable {
 
 	Function<? super T, ? extends Publisher<?>>[] otherGenerators;
 
 	@SuppressWarnings("unchecked")
-	MonoDelayUntil(Mono<T> monoSource,
+	MonoDelayUntil(Mono<? extends T> monoSource,
 			Function<? super T, ? extends Publisher<?>> triggerGenerator) {
-		this.source = Objects.requireNonNull(monoSource, "monoSource");
+		super(monoSource);
 		this.otherGenerators = new Function[] { Objects.requireNonNull(triggerGenerator, "triggerGenerator")};
 	}
 
-	MonoDelayUntil(Mono<T> monoSource,
+	MonoDelayUntil(Mono<? extends T> monoSource,
 			Function<? super T, ? extends Publisher<?>>[] triggerGenerators) {
-		this.source = Objects.requireNonNull(monoSource, "monoSource");
+		super(monoSource);
 		this.otherGenerators = triggerGenerators;
 	}
 
@@ -77,25 +75,10 @@ final class MonoDelayUntil<T> extends Mono<T> implements Scannable, CoreOperator
 	}
 
 	@Override
-	public void subscribe(CoreSubscriber<? super T> actual) {
-		source.subscribe(subscribeOrReturn(actual));
-	}
-
-	@Override
 	public final CoreSubscriber<? super T> subscribeOrReturn(CoreSubscriber<? super T> actual) {
 		DelayUntilCoordinator<T> parent = new DelayUntilCoordinator<>(actual, otherGenerators);
 		actual.onSubscribe(parent);
 		return parent;
-	}
-
-	@Override
-	public final Mono<T> source() {
-		return source;
-	}
-
-	@Override
-	public Object scanUnsafe(Attr key) {
-		return null; //no particular key to be represented, still useful in hooks
 	}
 
 	static final class DelayUntilCoordinator<T>

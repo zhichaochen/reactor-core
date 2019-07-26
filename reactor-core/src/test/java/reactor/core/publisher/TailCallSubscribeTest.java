@@ -71,6 +71,7 @@ public class TailCallSubscribeTest {
                 .startsWith(
                         tuple(Thread.class.getName(), "getStackTrace"),
                         tuple(stackCapturingPublisher.getClass().getName(), "subscribe"),
+                        tuple(MonoFromPublisher.class.getName(), "subscribe"),
                         tuple(Mono.class.getName(), "subscribe"),
                         tuple(this.getClass().getName(), "testStackDepth")
                 );
@@ -112,8 +113,10 @@ public class TailCallSubscribeTest {
                 .startsWith(
                         tuple(Thread.class.getName(), "getStackTrace"),
                         tuple(stackCapturingPublisher.getClass().getName(), "subscribe"),
+		                tuple(MonoFromPublisher.class.getName(), "subscribe"),
                         tuple(Flux.class.getName(), "subscribe"),
                         tuple(CustomOperator.class.getName(), "subscribe"),
+                        tuple(FluxSource.class.getName(), "subscribe"),
                         tuple(Mono.class.getName(), "subscribe"),
                         tuple(this.getClass().getName(), "interop")
                 );
@@ -125,6 +128,7 @@ public class TailCallSubscribeTest {
 
 		Flux.from(stackCapturingPublisher)
 		    .as(manyOperatorsOnFlux)
+		    .log()
 		    .delaySubscription(Duration.ofMillis(10))
 		    .as(manyOperatorsOnFlux)
 		    .subscribe(new CancellingSubscriber());
@@ -134,7 +138,8 @@ public class TailCallSubscribeTest {
 				.startsWith(
 						tuple(Thread.class.getName(), "getStackTrace"),
 						tuple(stackCapturingPublisher.getClass().getName(), "subscribe"),
-						tuple(InternalFluxOperator.class.getName(), "subscribe"),
+						tuple(FluxSource.class.getName(), "subscribe"),
+						tuple(FluxOperator.class.getName(), "subscribe"),
 						tuple(FluxDelaySubscription.class.getName(), "accept")
 				);
 	}
@@ -154,6 +159,7 @@ public class TailCallSubscribeTest {
 				.startsWith(
 						tuple(Thread.class.getName(), "getStackTrace"),
 						tuple(stackCapturingPublisher.getClass().getName(), "subscribe"),
+						tuple(FluxSource.class.getName(), "subscribe"),
 						tuple(Flux.class.getName(), "subscribe"),
 						tuple(this.getClass().getName(), "doFirst")
 				);
@@ -175,6 +181,7 @@ public class TailCallSubscribeTest {
 				.startsWith(
 						tuple(Thread.class.getName(), "getStackTrace"),
 						tuple(stackCapturingPublisher.getClass().getName(), "subscribe"),
+						tuple(FluxSource.class.getName(), "subscribe"),
 						tuple(Flux.class.getName(), "subscribe"),
 						tuple(this.getClass().getName(), "bufferWhen")
 				);
@@ -195,6 +202,7 @@ public class TailCallSubscribeTest {
 				.startsWith(
 						tuple(Thread.class.getName(), "getStackTrace"),
 						tuple(stackCapturingPublisher.getClass().getName(), "subscribe"),
+						tuple(FluxSource.class.getName(), "subscribe"),
 						tuple(Flux.class.getName(), "subscribe"),
 						tuple(FluxRepeat.RepeatSubscriber.class.getName(), "resubscribe"),
 						tuple(FluxRepeat.RepeatSubscriber.class.getName(), "onComplete"),
@@ -219,6 +227,7 @@ public class TailCallSubscribeTest {
 				.startsWith(
 						tuple(Thread.class.getName(), "getStackTrace"),
 						tuple(stackCapturingPublisher.getClass().getName(), "subscribe"),
+						tuple(FluxSource.class.getName(), "subscribe"),
 						tuple(Flux.class.getName(), "subscribe"),
 						tuple(FluxRetry.RetrySubscriber.class.getName(), "resubscribe"),
 						tuple(FluxRetry.class.getName(), "subscribeOrReturn"),
@@ -242,7 +251,7 @@ public class TailCallSubscribeTest {
 
         @Override
         public void onSubscribe(Subscription s) {
-            Schedulers.parallel().schedule(s::cancel, 10, TimeUnit.MILLISECONDS);
+            Schedulers.parallel().schedule(s::cancel, 1, TimeUnit.SECONDS);
         }
 
         @Override

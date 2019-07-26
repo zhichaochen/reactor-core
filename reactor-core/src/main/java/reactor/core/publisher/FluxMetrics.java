@@ -46,7 +46,7 @@ import reactor.util.function.Tuple2;
  * @author Simon Baslé
  * @author Stephane Maldini
  */
-final class FluxMetrics<T> extends InternalFluxOperator<T, T> {
+final class FluxMetrics<T> extends FluxOperator<T, T> {
 
 	final String name;
 	final Tags tags;

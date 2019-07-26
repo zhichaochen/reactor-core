@@ -37,7 +37,7 @@ import static reactor.core.publisher.FluxMetrics.*;
  * @author Simon Baslé
  * @author Stephane Maldini
  */
-final class MonoMetrics<T> extends InternalMonoOperator<T, T> {
+final class MonoMetrics<T> extends MonoOperator<T, T> {
 
 	final String        name;
 	final Tags          tags;
