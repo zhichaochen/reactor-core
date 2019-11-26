@@ -253,6 +253,11 @@ final class FluxPublishOn<T> extends InternalFluxOperator<T, T> implements Fusea
 			trySchedule(null, null, null);
 		}
 
+		/**
+		 * request 方法是整个流程的触发者
+		 * trySchedule ： 是工作窃取的核心。
+		 * @param n
+		 */
 		@Override
 		public void request(long n) {
 			if (Operators.validate(n)) {

@@ -23,6 +23,7 @@ import org.reactivestreams.Subscriber;
 import org.reactivestreams.Subscription;
 import reactor.core.Disposable;
 import reactor.core.Exceptions;
+import reactor.core.scheduler.Schedulers;
 import reactor.util.annotation.Nullable;
 import reactor.util.context.Context;
 
@@ -189,5 +190,43 @@ final class LambdaSubscriber<T>
 		if (s != null && s != Operators.cancelledSubscription()) {
 			s.cancel();
 		}
+	}
+
+	public static void main(String[] args) {
+		//Hooks.onOperatorDebug();
+		Flux.range(1, 10)
+				.map(x->x+1)
+				.take(3)
+				.subscribe(System.out::println);
+
+
+		/*Flux.just("tom")
+				.map(s -> {
+					System.out.println("(concat @qq.com) at [" + Thread.currentThread() + "]");
+					return s.concat("@qq.com");
+				})
+				.publishOn(Schedulers.newSingle("thread-a"))
+				.map(s -> {
+					System.out.println("(concat foo) at [" + Thread.currentThread() + "]");
+					return s.concat("foo");
+				})
+				.filter(s -> {
+					System.out.println("(startsWith f) at [" + Thread.currentThread() + "]");
+					return s.startsWith("t");
+				})
+				.publishOn(Schedulers.newParallel("thread-b"))
+				.map(s -> {
+					System.out.println("(to length) at [" + Thread.currentThread() + "]");
+					return s.length();
+				})
+				.subscribeOn(Schedulers.newSingle("source"))
+				.subscribe();*/
+
+
+		/*Flux<Integer> flux = Flux.range(1, 10)
+				.log()
+				.take(3);
+		flux.subscribe(System.out::println);*/
+
 	}
 }
