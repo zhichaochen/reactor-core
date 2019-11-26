@@ -19,7 +19,6 @@ package reactor.core.publisher;
 import java.time.Duration;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -1693,7 +1692,7 @@ public abstract class Flux<T> implements CorePublisher<T> {
 	 * the Subscriber cancels.
 	 * <p>
 	 * Eager resource cleanup happens just before the source termination and exceptions raised by the cleanup Consumer
-	 * may override the terminal even.
+	 * may override the terminal event.
 	 * <p>
 	 * <img class="marble" src="doc-files/marbles/usingForFlux.svg" alt="">
 	 * <p>
@@ -1721,7 +1720,7 @@ public abstract class Flux<T> implements CorePublisher<T> {
 	 * the Subscriber cancels.
 	 * <p>
 	 * <ul> <li>Eager resource cleanup happens just before the source termination and exceptions raised by the cleanup
-	 * Consumer may override the terminal even.</li> <li>Non-eager cleanup will drop any exception.</li> </ul>
+	 * Consumer may override the terminal event.</li> <li>Non-eager cleanup will drop any exception.</li> </ul>
 	 * <p>
 	 * <img class="marble" src="doc-files/marbles/usingForFlux.svg" alt="">
 	 * <p>
@@ -3167,12 +3166,17 @@ public abstract class Flux<T> implements CorePublisher<T> {
 	}
 
 	/**
-	 * Activate assembly tracing for this particular {@link Flux}, in case of an error
+	 * Activate traceback (full assembly tracing) for this particular {@link Flux}, in case of an error
 	 * upstream of the checkpoint. Tracing incurs the cost of an exception stack trace
 	 * creation.
 	 * <p>
 	 * It should be placed towards the end of the reactive chain, as errors
-	 * triggered downstream of it cannot be observed and augmented with assembly trace.
+	 * triggered downstream of it cannot be observed and augmented with the backtrace.
+	 * <p>
+	 * The traceback is attached to the error as a {@link Throwable#getSuppressed() suppressed exception}.
+	 * As such, if the error is a {@link Exceptions#isMultiple(Throwable) composite one}, the traceback
+	 * would appear as a component of the composite. In any case, the traceback nature can be detected via
+	 * {@link Exceptions#isTraceback(Throwable)}.
 	 *
 	 * @return the assembly tracing {@link Flux}.
 	 */
@@ -3181,7 +3185,7 @@ public abstract class Flux<T> implements CorePublisher<T> {
 	}
 
 	/**
-	 * Activate assembly marker for this particular {@link Flux} by giving it a description that
+	 * Activate traceback (assembly marker) for this particular {@link Flux} by giving it a description that
 	 * will be reflected in the assembly traceback in case of an error upstream of the
 	 * checkpoint. Note that unlike {@link #checkpoint()}, this doesn't create a
 	 * filled stack trace, avoiding the main cost of the operator.
@@ -3192,6 +3196,11 @@ public abstract class Flux<T> implements CorePublisher<T> {
 	 * <p>
 	 * It should be placed towards the end of the reactive chain, as errors
 	 * triggered downstream of it cannot be observed and augmented with assembly trace.
+	 * <p>
+	 * The traceback is attached to the error as a {@link Throwable#getSuppressed() suppressed exception}.
+	 * As such, if the error is a {@link Exceptions#isMultiple(Throwable) composite one}, the traceback
+	 * would appear as a component of the composite. In any case, the traceback nature can be detected via
+	 * {@link Exceptions#isTraceback(Throwable)}.
 	 *
 	 * @param description a unique enough description to include in the light assembly traceback.
 	 * @return the assembly marked {@link Flux}
@@ -3201,8 +3210,8 @@ public abstract class Flux<T> implements CorePublisher<T> {
 	}
 
 	/**
-	 * Activate assembly tracing or the lighter assembly marking depending on the
-	 * {@code forceStackTrace} option.
+	 * Activate traceback (full assembly tracing or the lighter assembly marking depending on the
+	 * {@code forceStackTrace} option).
 	 * <p>
 	 * By setting the {@code forceStackTrace} parameter to {@literal true}, activate assembly
 	 * tracing for this particular {@link Flux} and give it a description that
@@ -3219,6 +3228,11 @@ public abstract class Flux<T> implements CorePublisher<T> {
 	 * <p>
 	 * It should be placed towards the end of the reactive chain, as errors
 	 * triggered downstream of it cannot be observed and augmented with assembly marker.
+	 * <p>
+	 * The traceback is attached to the error as a {@link Throwable#getSuppressed() suppressed exception}.
+	 * As such, if the error is a {@link Exceptions#isMultiple(Throwable) composite one}, the traceback
+	 * would appear as a component of the composite. In any case, the traceback nature can be detected via
+	 * {@link Exceptions#isTraceback(Throwable)}.
 	 *
 	 * @param description a description (must be unique enough if forceStackTrace is set
 	 * to false).
@@ -3522,16 +3536,9 @@ public abstract class Flux<T> implements CorePublisher<T> {
 	 */
 	@SuppressWarnings({ "unchecked", "rawtypes" })
 	public final Mono<List<T>> collectSortedList(@Nullable Comparator<? super T> comparator) {
-		return collectList().map(list -> {
+		return collectList().doOnNext(list -> {
 			// Note: this assumes the list emitted by buffer() is mutable
-			if (comparator != null) {
-				list.sort(comparator);
-			} else {
-
-				List<Comparable> l = (List<Comparable>)list;
-				Collections.sort(l);
-			}
-			return list;
+			list.sort(comparator);
 		});
 	}
 
@@ -5522,8 +5529,10 @@ public abstract class Flux<T> implements CorePublisher<T> {
 	}
 
 	/**
-	 * Map values from two Publishers into time windows and emit combination of values
-	 * in case their windows overlap. The emitted elements are obtained by passing the
+	 * Combine values from two Publishers in case their windows overlap. Each incoming
+	 * value triggers a creation of a new Publisher via the given {@link Function}. If the
+	 * Publisher signals its first value or completes, the time windows for the original
+	 * element is immediately closed. The emitted elements are obtained by passing the
 	 * values from this {@link Flux} and the other {@link Publisher} to a {@link BiFunction}.
 	 * <p>
 	 * There are no guarantees in what order the items get combined when multiple items from
@@ -8939,6 +8948,10 @@ public abstract class Flux<T> implements CorePublisher<T> {
 	 * @see #as for a loose conversion to an arbitrary type
 	 */
 	public final <V> Flux<V> transform(Function<? super Flux<T>, ? extends Publisher<V>> transformer) {
+		if (Hooks.DETECT_CONTEXT_LOSS) {
+			//noinspection unchecked,rawtypes
+			transformer = new ContextTrackingFunctionWrapper(transformer);
+		}
 		return onAssembly(from(transformer.apply(this)));
 	}
 
@@ -8960,7 +8973,13 @@ public abstract class Flux<T> implements CorePublisher<T> {
 	 * @see #as as() for a loose conversion to an arbitrary type
 	 */
 	public final <V> Flux<V> transformDeferred(Function<? super Flux<T>, ? extends Publisher<V>> transformer) {
-		return defer(() -> transformer.apply(this));
+		return defer(() -> {
+			if (Hooks.DETECT_CONTEXT_LOSS) {
+				//noinspection unchecked,rawtypes
+				return new ContextTrackingFunctionWrapper<T, V>((Function) transformer).apply(this);
+			}
+			return transformer.apply(this);
+		});
 	}
 
 	/**
