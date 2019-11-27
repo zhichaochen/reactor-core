@@ -51,6 +51,7 @@ import static reactor.core.Fuseable.NONE;
  *
  * Combine utils available to operator implementations, @see https://github.com/reactor/reactive-streams-commons
  *
+ * 针对算子元素的一些公共方法。
  */
 public abstract class Operators {
 
@@ -61,6 +62,11 @@ public abstract class Operators {
 	 * @param b right operand
 	 *
 	 * @return Addition result or Long.MAX_VALUE if overflow
+	 *
+	 * 增加上限：
+	 *
+	 * 当a+b 变成负数的时候，表示已经超过Long的最大值。
+	 * 这个时候返回Long.MAX_VALUE，也就是最大只能是Long.MAX_VALUE
 	 */
 	public static long addCap(long a, long b) {
 		long res = a + b;
@@ -79,15 +85,23 @@ public abstract class Operators {
 	 * @param instance current instance to update
 	 * @param toAdd    delta to add
 	 * @return value before addition or Long.MAX_VALUE
+	 *
+	 * 增加请求元素的上限。
+	 *
+	 * 多次请求的元素的总和不能超过Long.MAX_VALUE，同时也限制了元素的总和不能超过Long.MAX_VALUE
 	 */
 	public static <T> long addCap(AtomicLongFieldUpdater<T> updater, T instance, long toAdd) {
 		long r, u;
 		for (;;) {
+			//获取该对象字段中保存的值。
 			r = updater.get(instance);
+			//如果等于Long.MAX_VALUE直接返回。
 			if (r == Long.MAX_VALUE) {
 				return Long.MAX_VALUE;
 			}
+			//去增加
 			u = addCap(r, toAdd);
+			//用新值替换老值。并返回【原来的值】。
 			if (updater.compareAndSet(instance, r, u)) {
 				return r;
 			}
@@ -532,6 +546,8 @@ public abstract class Operators {
 	 * @param <T> the dropped value type
 	 * @param t the dropped data
 	 * @param context a context that might hold a local next consumer
+	 *
+	 * 即将删除意外事件。
 	 */
 	public static <T> void onNextDropped(T t, Context context) {
 		Objects.requireNonNull(t, "onNext");
@@ -1135,9 +1151,12 @@ public abstract class Operators {
 	 * Evaluate if a request is strictly positive otherwise {@link #reportBadRequest(long)}
 	 * @param n the request value
 	 * @return true if valid
+	 *
+	 * 验证请求元素是否合格。
 	 */
 	public static boolean validate(long n) {
 		if (n <= 0) {
+			//打印日志
 			reportBadRequest(n);
 			return false;
 		}
@@ -1153,6 +1172,8 @@ public abstract class Operators {
 	 *
 	 * @param actual the {@link Subscriber} to apply hook on
 	 * @return an eventually transformed {@link Subscriber}
+	 *
+	 * 作用；将LambdaSubscriber类型 强转成CoreSubscriber类型。
 	 */
 	@SuppressWarnings("unchecked")
 	public static <T> CoreSubscriber<? super T> toCoreSubscriber(Subscriber<? super T> actual) {

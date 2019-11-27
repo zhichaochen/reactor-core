@@ -109,6 +109,9 @@ import reactor.util.function.Tuples;
  * @author Simon Baslé
  *
  * @see Mono
+ *
+ * 算子提供了静态方法，一般可以放在首位。例如range
+ * 算子没有提供静态方法，一般只能放在中间，例如map
  */
 public abstract class Flux<T> implements CorePublisher<T> {
 
@@ -8117,25 +8120,69 @@ public abstract class Flux<T> implements CorePublisher<T> {
 				initialContext));
 	}
 
+	/**
+	 *
+	 * 总之来说：该对象有两个作用。
+	 * 1、创建算子本身的订阅者
+	 * 2、建立订阅者和算子之间的关系。
+	 * 	比如：FluxFilter 记录了订阅者 LambdaSubscriber
+	 * 		FluxTake 记录了订阅者 FilterSubscriber
+	 *
+	 * 总之来说就是：下游的算子会订阅上游的算子。
+	 *
+	 * 分析使用如下操作：
+	 * 			Flux.range(1, 10)
+	 * 				.map(x -> x + 1)
+	 * 				.take(3)
+	 * 				.filter(x -> x != 1)
+	 * 				.subscribe(System.out::println);
+	 *
+	 * @param actual
+	 */
 	@Override
 	@SuppressWarnings("unchecked")
 	public final void subscribe(Subscriber<? super T> actual) {
+		/**
+		 * 1、为最后一个算子添加钩子
+		 * 2、将其转化为一个CorePublisher对象，以便执行其subscribe
+		 */
 		CorePublisher publisher = Operators.onLastAssembly(this);
+		/**
+		 * 将LambdaSubscriber其转化为一个CoreSubscriber对象。
+		 */
 		CoreSubscriber subscriber = Operators.toCoreSubscriber(actual);
 
 		if (publisher instanceof OptimizableOperator) {
+			//一个发布者算子转化成OptimizableOperator算子。
 			OptimizableOperator operator = (OptimizableOperator) publisher;
 			while (true) {
+				/**
+				 * 创建该算子的订阅者，并记录其下游的订阅者。表示下游的算子订阅了上游的算子。
+				 *
+				 * 1、记录某算子的下游的订阅者。也就是说谁订阅了
+				 * 		比如：FluxFilter（operator）算子记录了LambdaSubscriber订阅者。
+				 * 		比如：TakeSubscriber算子记录了FilterSubscriber
+				 * 2、创建该算子的订阅者，比如：new MapFuseableSubscriber
+				 *
+				 * 3、将新产生的订阅者覆盖上一个订阅者，下一个算子再继续订阅该订阅者。
+				 */
 				subscriber = operator.subscribeOrReturn(subscriber);
 				if (subscriber == null) {
 					// null means "I will subscribe myself", returning...
 					return;
 				}
+				/**
+				 * 在创建 算子对象的时候会 通过super(source)，让抽象父类帮助记录，【每个算子的【上游】算子】
+				 * 在这里，通过nextOptimizableSource方法，便可获取到下游的算子。
+				 * 比如：FluxTake#nextOptimizableSource,会返回MapFlux。
+				 */
 				OptimizableOperator newSource = operator.nextOptimizableSource();
 				if (newSource == null) {
+					//
 					publisher = operator.source();
 					break;
 				}
+				//
 				operator = newSource;
 			}
 		}

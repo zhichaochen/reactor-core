@@ -33,6 +33,9 @@ import reactor.util.annotation.Nullable;
  * 
  * @param <T> the value type
  * @see <a href="https://github.com/reactor/reactive-streams-commons">Reactive-Streams-Commons</a>
+ *
+ * 通过调度程序【异步订阅】源Publisher，或执行服务。
+ *
  */
 final class FluxSubscribeOn<T> extends InternalFluxOperator<T, T> {
 
@@ -64,6 +67,9 @@ final class FluxSubscribeOn<T> extends InternalFluxOperator<T, T> {
 				actual, worker, requestOnSeparateThread);
 		actual.onSubscribe(parent);
 
+		/**
+		 * 创建并开启线程
+		 */
 		try {
 			worker.schedule(parent);
 		}
@@ -73,6 +79,10 @@ final class FluxSubscribeOn<T> extends InternalFluxOperator<T, T> {
 						actual.currentContext()));
 			}
 		}
+		/**
+		 * 这里特别重要：如果在链中调用了publishOn(thread)方法则，则直接返回
+		 *
+		 */
 		return null;
 	}
 
@@ -84,6 +94,7 @@ final class FluxSubscribeOn<T> extends InternalFluxOperator<T, T> {
 		final CorePublisher<? extends T> source;
 
 		final Worker  worker;
+		//表示请求的线程，是否是新创建的线程。
 		final boolean requestOnSeparateThread;
 
 		volatile Subscription s;
@@ -126,6 +137,12 @@ final class FluxSubscribeOn<T> extends InternalFluxOperator<T, T> {
 			}
 		}
 
+		/**
+		 * 开启线程去请求request上游数据。异步执行背压策略。
+		 *
+		 * @param n
+		 * @param s
+		 */
 		void requestUpstream(final long n, final Subscription s) {
 			if (!requestOnSeparateThread || Thread.currentThread() == THREAD.get(this)) {
 				s.request(n);
@@ -167,6 +184,10 @@ final class FluxSubscribeOn<T> extends InternalFluxOperator<T, T> {
 			worker.dispose();
 		}
 
+		/**
+		 * 异步去请求上游数据。
+		 * @param n
+		 */
 		@Override
 		public void request(long n) {
 			if (Operators.validate(n)) {
@@ -188,6 +209,9 @@ final class FluxSubscribeOn<T> extends InternalFluxOperator<T, T> {
 			}
 		}
 
+		/**
+		 * 开启的线程任务。
+		 */
 		@Override
 		public void run() {
 			THREAD.lazySet(this, Thread.currentThread());

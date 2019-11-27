@@ -53,6 +53,14 @@ final class FluxMapFuseable<T, R> extends InternalFluxOperator<T, R> implements 
 		this.mapper = Objects.requireNonNull(mapper, "mapper");
 	}
 
+	/**
+	 * 1、创建map算子的订阅者对象。
+	 * 1、记录其上游的订阅者。
+	 * 2、记录该算子执行的操作。
+	 *
+	 * @param actual
+	 * @return
+	 */
 	@Override
 	@SuppressWarnings("unchecked")
 	public CoreSubscriber<? super T> subscribeOrReturn(CoreSubscriber<? super R> actual) {
@@ -63,6 +71,9 @@ final class FluxMapFuseable<T, R> extends InternalFluxOperator<T, R> implements 
 		return new MapFuseableSubscriber<>(actual, mapper);
 	}
 
+	/**
+	 * 表示
+	 */
 	static final class MapFuseableSubscriber<T, R>
 			implements InnerOperator<T, R>,
 			           QueueSubscription<R> {
@@ -226,6 +237,7 @@ final class FluxMapFuseable<T, R> extends InternalFluxOperator<T, R> implements 
 		final ConditionalSubscriber<? super R> actual;
 		final Function<? super T, ? extends R> mapper;
 
+		//表示是否完成
 		boolean done;
 
 		QueueSubscription<T> s;
@@ -260,9 +272,9 @@ final class FluxMapFuseable<T, R> extends InternalFluxOperator<T, R> implements 
 		public void onNext(T t) {
 			if (sourceMode == ASYNC) {
 				actual.onNext(null);
-			}
-			else {
+			} else {
 				if (done) {
+					//已经是完成状态，删除发送的该元素。
 					Operators.onNextDropped(t, actual.currentContext());
 					return;
 				}
@@ -288,9 +300,15 @@ final class FluxMapFuseable<T, R> extends InternalFluxOperator<T, R> implements 
 			}
 		}
 
+		/**
+		 *
+		 * @param t the value to consume, not null
+		 * @return
+		 */
 		@Override
 		public boolean tryOnNext(T t) {
 			if (done) {
+				//已经完成，还在发送元素，将这些元素删除。
 				Operators.onNextDropped(t, actual.currentContext());
 				return true;
 			}

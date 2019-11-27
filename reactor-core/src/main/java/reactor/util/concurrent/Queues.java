@@ -33,6 +33,8 @@ import reactor.util.annotation.Nullable;
 /**
  * Queue utilities and suppliers for 1-producer/1-consumer ready queues adapted for
  * various given capacities.
+ *
+ * 适用于各种给定容量的，1生产者/ 1消费者的就绪队列，实用程序和供应商。
  */
 public final class Queues {
 

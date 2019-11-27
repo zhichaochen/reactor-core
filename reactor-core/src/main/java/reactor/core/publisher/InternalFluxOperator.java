@@ -22,6 +22,13 @@ import reactor.core.CoreSubscriber;
 import reactor.core.Scannable;
 import reactor.util.annotation.Nullable;
 
+/**
+ * 该抽象类表示：该算子可以在其他的算子中间。
+ * 比如：FluxRange ；就不可以在中间。
+ *
+ * @param <I>
+ * @param <O>
+ */
 abstract class InternalFluxOperator<I, O> extends FluxOperator<I, O> implements Scannable,
                                                                                 OptimizableOperator<O, I> {
 

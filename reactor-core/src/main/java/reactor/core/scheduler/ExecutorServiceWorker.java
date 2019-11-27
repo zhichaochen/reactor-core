@@ -25,11 +25,15 @@ import reactor.core.Scannable;
 
 /**
  * @author Stephane Maldini
+ *
+ * 管理多个线程。
  */
 final class ExecutorServiceWorker implements Scheduler.Worker, Disposable, Scannable {
 
+	//线程池：
 	final ScheduledExecutorService exec;
 
+	//里面存放着多个线程。比如：ListCompositeDisposable
 	final Composite tasks;
 
 
@@ -43,6 +47,14 @@ final class ExecutorServiceWorker implements Scheduler.Worker, Disposable, Scann
 		return Schedulers.workerSchedule(exec, tasks, task, 0L, TimeUnit.MILLISECONDS);
 	}
 
+	/**
+	 * 创建并开启线程。
+	 *
+	 * @param task the task to schedule
+	 * @param delay the delay amount, non-positive values indicate non-delayed scheduling
+	 * @param unit the unit of measure of the delay amount
+	 * @return
+	 */
 	@Override
 	public Disposable schedule(Runnable task, long delay, TimeUnit unit) {
 		return Schedulers.workerSchedule(exec, tasks, task, delay, unit);

@@ -39,18 +39,21 @@ import reactor.core.Scannable;
 final class ParallelScheduler implements Scheduler, Supplier<ScheduledExecutorService>,
                                          Scannable {
 
+    //计数器
     static final AtomicLong COUNTER = new AtomicLong();
 
     final int n;
     
     final ThreadFactory factory;
 
+    //执行器数组（默认创建的线程）
     volatile ScheduledExecutorService[] executors;
+    //更新执行器。
     static final AtomicReferenceFieldUpdater<ParallelScheduler, ScheduledExecutorService[]> EXECUTORS =
             AtomicReferenceFieldUpdater.newUpdater(ParallelScheduler.class, ScheduledExecutorService[].class, "executors");
-
+    //关闭的线程池
     static final ScheduledExecutorService[] SHUTDOWN = new ScheduledExecutorService[0];
-    
+    //已终止的线程池
     static final ScheduledExecutorService TERMINATED;
     static {
         TERMINATED = Executors.newSingleThreadScheduledExecutor();
@@ -79,7 +82,11 @@ final class ParallelScheduler implements Scheduler, Supplier<ScheduledExecutorSe
         poolExecutor.setRemoveOnCancelPolicy(true);
         return poolExecutor;
     }
-    
+
+    /**
+     * 创建多个线程池，并装饰他们。
+     * @param n
+     */
     void init(int n) {
         ScheduledExecutorService[] a = new ScheduledExecutorService[n];
         for (int i = 0; i < n; i++) {
@@ -132,7 +139,11 @@ final class ParallelScheduler implements Scheduler, Supplier<ScheduledExecutorSe
             }
         }
     }
-    
+
+    /**
+     * 拿出一个线程池出来。
+     * @return
+     */
     ScheduledExecutorService pick() {
         ScheduledExecutorService[] a = executors;
         if (a != SHUTDOWN) {
@@ -197,6 +208,10 @@ final class ParallelScheduler implements Scheduler, Supplier<ScheduledExecutorSe
                 .map(exec -> key -> Schedulers.scanExecutor(exec, key));
     }
 
+    /**
+     * 创建ExecutorServiceWorker，用于管理线程。
+     * @return
+     */
     @Override
     public Worker createWorker() {
         return new ExecutorServiceWorker(pick());

@@ -29,8 +29,12 @@ import reactor.util.annotation.Nullable;
  * A decorating {@link Flux} {@link Publisher} that exposes {@link Flux} API over an
  * arbitrary {@link Publisher}. Useful to create operators which return a {@link Flux}.
  *
- * @param <I> delegate {@link Publisher} type
+ * 修饰Flux、Publisher，暴露api 覆盖一个任意的Publisher，用于创建返回一个Flux
+ *
+ * @param <I> delegate {@link Publisher} type ：
  * @param <O> produced type
+ *
+ *
  */
 public abstract class FluxOperator<I, O> extends Flux<O> implements Scannable {
 

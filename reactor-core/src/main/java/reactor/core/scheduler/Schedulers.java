@@ -71,6 +71,8 @@ public abstract class Schedulers {
 	 * and falls back to the number of processors available to the runtime on init.
 	 *
 	 * @see Runtime#availableProcessors()
+	 *
+	 * 默认的线程池容量：如果没有配置，则使用cpu的核数。
 	 */
 	public static final int DEFAULT_POOL_SIZE =
 			Optional.ofNullable(System.getProperty("reactor.schedulers.defaultPoolSize"))
@@ -1148,14 +1150,32 @@ public abstract class Schedulers {
 		}
 	}
 
+	/**
+	 * 创建线程，并开启线程。
+	 * 1、如果不延迟，直接启动线程
+	 * 2、如果延迟，则过了延迟时间，启动线程
+	 *
+	 * @param exec
+	 * @param tasks Composite中存储多个任务。
+	 * @param task 单个job，例如FluxPublishOn
+	 * @param delay 是否延迟
+	 * @param unit
+	 * @return
+	 */
 	static Disposable workerSchedule(ScheduledExecutorService exec,
 			Disposable.Composite tasks,
 			Runnable task,
 			long delay,
 			TimeUnit unit) {
+		//执行调度钩子
 		task = onSchedule(task);
 
+		//创建一个线程
 		WorkerTask sr = new WorkerTask(task, tasks);
+		/**
+		 * 将线程加入list中，以便以后可以一起丢弃
+		 * 参见：ListCompositeDisposable#add
+		 */
 		if (!tasks.add(sr)) {
 			throw Exceptions.failWithRejected();
 		}

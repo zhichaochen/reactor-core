@@ -33,9 +33,15 @@ import reactor.util.annotation.Nullable;
  *
  * @author Simon Baslé
  * @author David Karnok
+ *
+ * 真正执行任务的地方。类似于jdk中的FutureTask，这里算是对FutureTask的重写。
+ *
+ * 创建了一个线程。
+ * 创建线程的三种方试。实现Runnable 或者 Callable接口，继承Thread
  */
 final class WorkerTask implements Runnable, Disposable, Callable<Void> {
 
+	//比如FluxPublishOn
 	final Runnable task;
 
 	/** marker that the Worker was disposed and the parent got notified */

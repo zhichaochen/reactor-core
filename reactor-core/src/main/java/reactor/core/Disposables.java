@@ -166,6 +166,11 @@ public final class Disposables {
 			return disposed;
 		}
 
+		/**
+		 * 将一个任务加入List<Disposable>，表示可随时被丢弃。
+		 * @param d the {@link Disposable} to add.
+		 * @return
+		 */
 		@Override
 		public boolean add(Disposable d) {
 			Objects.requireNonNull(d, "d is null");
@@ -253,6 +258,10 @@ public final class Disposables {
 			dispose(set);
 		}
 
+		/**
+		 * 循环可丢弃的列表执行丢弃方法。
+		 * @param set
+		 */
 		void dispose(@Nullable List<Disposable> set) {
 			if (set == null) {
 				return;

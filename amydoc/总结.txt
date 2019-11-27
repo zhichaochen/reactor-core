@@ -1,0 +1,76 @@
+0、操作
+    Flux.range(1, 10)
+				.map(x -> x + 1)
+				.take(3)
+				.filter(x -> x != 1)
+				.subscribe(System.out::println);
+
+1、总结
+    request：表示背压，下游调用上游元素的个数。默认是Long.MAX_VALUE
+        即使请求Long.MAX_VALUE个元素，但也是onNext一个个的执行下去。
+
+    publishOn：异步执行某个算子的任务。
+    subscribeOn：异步去request请求上游数据
+1、多个算子如何实现上游可以调用下游，同时，下游也调用上游的？
+    参见Flux#subscribe(Subscriber<? super T> actual) 方法。
+
+    切记：多个子对象使用super 给抽象的父类的属性赋值，通过子类的对象，能获取到自己的赋值。
+
+    1、在创建算子的时候，建立了上游算子其下游算子的关系。
+        例如：在创建new FluxMapFuseable 的时候记录了FluxRangeFuseable算子
+        源码如下：
+            public final <V> Flux<V> map(Function<? super T, ? extends V> mapper) {
+                if (this instanceof Fuseable) {
+
+                    1、因为在Flux对象中，此时的Flux对象还表示FluxRangeFuseable。
+                    2、在new FluxMapFuseable的时候，在其构造方法中
+                        通过 super(source) 将其 记录在 FluxOperator 中的 source属性中。
+                        这样FluxMapFuseable 算子 就记录了其上游的算子FluxRangeFuseable
+                    3、在onAssembly执行return source 之后，该Flux 的this 才会表示为FluxMapFuseable
+
+                    return onAssembly(new FluxMapFuseable<>(this, mapper));
+                }
+                return onAssembly(new FluxMap<>(this, mapper));
+            }
+
+    2、建立算子之间的订阅关系。
+        在：Flux#subscribe 中建立了 订阅者和其订阅者的关系（下游的算子的订阅者会订阅上游的算子）
+        所以，上游的订阅者中的actual 是 下游的订阅者。表示之间的关系。
+
+        参见原文分析
+        订阅者的_actual 对象就是其订阅的算子
+
+    总结：
+        通过FluxXXX算子的父类 InternalFluxOperator#nextOptimizableSource的方法能获取 上游的算子
+        通过FluxXXX算子的订阅者，能访问到下游的算子，这样就上下都能访问了。
+
+2、订阅时候调用链
+    在调用.subscribe方法中，会建立算子之间订阅关系。
+    首先需要明确，一个订阅者【记录了其下游的订阅者】。。比如：FluxMapFuseable  记录了 TakeFuseableSubscriber
+    下游算子订阅了上游
+
+
+    FilterFuseableSubscriber 中的actual 是：lambdaSubscriber，故而，
+    onSubscribe：上游订阅者调用下游订阅者。
+    LambdaSubscriber ：是转折点。
+    wip：记录调用个数。
+
+
+4、如何进行线程切换
+5、如何异步消费数据（即publishOn原理）
+    publishOn原理：
+        1、上游数据发送到 FluxPublishOn#onNext中
+        2、在onNext中将数据存入Queue中，而不是继续往下。
+        3、在onNext中会用trySchedule()方法开启线程，
+        4、开启的线程会调用FluxPublishOn#run方法执行任务
+        =========
+        5、异步执行（特别注意）
+            FluxPublishOn#onNext 中，每个onNext都会开启一个线程。
+            故而：
+            在run（runSync 或 runAsync）中，才真正的调用【下一个算子的onNext】方法。
+            故而：
+            多个线程去消费上游数据，下游的多个线程去执行onNext。
+        6、在FluxPublishOn#onComplete方法中，销毁该算子创建的线程。
+
+        经过publishOn之后，就变成了多个线程。
+        数据先缓存在FluxPublishOn的queue中，然后再开启多个线程去消费queue中的数据。

@@ -38,6 +38,10 @@ import reactor.util.annotation.Nullable;
  * @param <T> the value type
  *
  * @see <a href="https://github.com/reactor/reactive-streams-commons">Reactive-Streams-Commons</a>
+ *
+ * 在调度程序回调指定的其他线程上发出事件。
+ *
+ * 我的理解，上游订阅者onNext发送元素存入Queue，下游的订阅者开启多线程来消费。
  */
 final class FluxPublishOn<T> extends InternalFluxOperator<T, T> implements Fuseable {
 
@@ -114,6 +118,10 @@ final class FluxPublishOn<T> extends InternalFluxOperator<T, T> implements Fusea
 				queueSupplier);
 	}
 
+	/**
+	 * PublishOn对应的Subscriber
+	 * @param <T>
+	 */
 	static final class PublishOnSubscriber<T>
 			implements QueueSubscription<T>, Runnable, InnerOperator<T, T> {
 
@@ -141,11 +149,13 @@ final class FluxPublishOn<T> extends InternalFluxOperator<T, T> implements Fusea
 
 		Throwable error;
 
+		//流水线
 		volatile int wip;
 		@SuppressWarnings("rawtypes")
 		static final AtomicIntegerFieldUpdater<PublishOnSubscriber> WIP =
 				AtomicIntegerFieldUpdater.newUpdater(PublishOnSubscriber.class, "wip");
 
+		//下游算子请求的元素的个数
 		volatile long requested;
 		@SuppressWarnings("rawtypes")
 		static final AtomicLongFieldUpdater<PublishOnSubscriber> REQUESTED =
@@ -153,6 +163,7 @@ final class FluxPublishOn<T> extends InternalFluxOperator<T, T> implements Fusea
 
 		int sourceMode;
 
+		//上游算子生产的元素的个数
 		long produced;
 
 		boolean outputFused;
@@ -173,6 +184,10 @@ final class FluxPublishOn<T> extends InternalFluxOperator<T, T> implements Fusea
 			this.limit = Operators.unboundedOrLimit(prefetch, lowTide);
 		}
 
+		/**
+		 * 订阅之后做些什么事情？
+		 * @param s
+		 */
 		@Override
 		public void onSubscribe(Subscription s) {
 			if (Operators.validate(this.s, s)) {
@@ -214,15 +229,22 @@ final class FluxPublishOn<T> extends InternalFluxOperator<T, T> implements Fusea
 
 		@Override
 		public void onNext(T t) {
+			//如果是异步，直接调用trySchedule
 			if (sourceMode == ASYNC) {
 				trySchedule(this, null, null /* t always null */);
 				return;
 			}
 
+			//如果是完成状态，丢弃该元素。
 			if (done) {
 				Operators.onNextDropped(t, actual.currentContext());
 				return;
 			}
+
+			/**
+			 * 上游发送过来的元素放入Queue中。
+			 * 如果返回false：处理异常信息。
+			 */
 			if (!queue.offer(t)) {
 				error = Operators.onOperatorError(s,
 						Exceptions.failWithOverflow(Exceptions.BACKPRESSURE_ERROR_QUEUE_FULL),
@@ -282,6 +304,16 @@ final class FluxPublishOn<T> extends InternalFluxOperator<T, T> implements Fusea
 			}
 		}
 
+		/**
+		 * 创建并开启线程，线程会执行该类中的run方法。
+		 *
+		 * 由此可见，上游数据放入Queue队列
+		 *
+		 *
+		 * @param subscription
+		 * @param suppressed
+		 * @param dataSignal
+		 */
 		void trySchedule(
 				@Nullable Subscription subscription,
 				@Nullable Throwable suppressed,
@@ -300,6 +332,11 @@ final class FluxPublishOn<T> extends InternalFluxOperator<T, T> implements Fusea
 			}
 		}
 
+		/**
+		 * 同步运行
+		 *
+		 *
+		 */
 		void runSync() {
 			int missed = 1;
 
@@ -311,11 +348,15 @@ final class FluxPublishOn<T> extends InternalFluxOperator<T, T> implements Fusea
 			for (; ; ) {
 
 				long r = requested;
-
+				/**
+				 * e ：目前上游生产的元素的个数
+				 * r ：下游这次请求的元素的个数
+				 */
 				while (e != r) {
 					T v;
 
 					try {
+						//拿一个元素
 						v = q.poll();
 					}
 					catch (Throwable ex) {
@@ -332,7 +373,7 @@ final class FluxPublishOn<T> extends InternalFluxOperator<T, T> implements Fusea
 						doComplete(a);
 						return;
 					}
-
+					//把该元素发送到下游去执行。
 					a.onNext(v);
 
 					e++;
@@ -477,6 +518,9 @@ final class FluxPublishOn<T> extends InternalFluxOperator<T, T> implements Fusea
 			}
 		}
 
+		/**
+		 * 该方法为publishOn()开启的多线程执行的任务。
+		 */
 		@Override
 		public void run() {
 			if (outputFused) {

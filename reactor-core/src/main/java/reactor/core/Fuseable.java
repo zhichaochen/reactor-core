@@ -26,16 +26,22 @@ import reactor.util.annotation.Nullable;
 
 /**
  * A micro API for stream fusion, in particular marks producers that support a {@link QueueSubscription}.
+ *
+ * 流融合
  */
 public interface Fuseable {
 
 	/** Indicates the QueueSubscription can't support the requested mode. */
+	//表示QueueSubscription 是无法支持的请求模式
 	int NONE = 0;
 	/** Indicates the QueueSubscription can perform sync-fusion. */
+	//表示QueueSubscription 可以执行同步融合
 	int SYNC = 1;
 	/** Indicates the QueueSubscription can perform only async-fusion. */
+	//表示QueueSubscription 可以执行异步融合
 	int ASYNC = 2;
 	/** Indicates the QueueSubscription should decide what fusion it performs (input only). */
+	//QueueSubscription 应决定它执行的融合（仅输入）
 	int ANY = 3;
 	/**
 	 * Indicates that the queue will be drained from another thread
@@ -46,6 +52,8 @@ public interface Fuseable {
 	 * could invoke the mapper function from its {@code poll()} method from another thread,
 	 * whereas the unfused sequence would have invoked the mapper on the previous thread.
 	 * If such mapper invocation is costly, it would escape its thread boundary this way.
+	 *
+	 * 指示队列将从另一个线程中排出，因此，任何队列退出计算在那一点可能是无效的。
 	 */
 	int THREAD_BARRIER = 4;
 
@@ -56,6 +64,11 @@ public interface Fuseable {
 	 * values.
 	 *
 	 * @param <T> the value type
+	 *
+	 * 一种订阅者变量，可以立即判断它是否被消费值
+	 * 直接允许发送新值（如果它没有）
+	 *
+	 * 这避免了用request(1) 往返删掉的值
 	 */
 	interface ConditionalSubscriber<T> extends CoreSubscriber<T> {
 		/**
@@ -68,6 +81,9 @@ public interface Fuseable {
 
 	/**
 	 * Support contract for queue-fusion based optimizations on subscriptions.
+	 *
+	 * 支持订阅上基于队列融合的优化的协定。
+	 * OptimizableOperator：可优化的算子，实现该接口，表示可以
 	 *
 	 * <ul>
 	 *  <li>

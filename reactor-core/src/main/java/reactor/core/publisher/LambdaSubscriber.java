@@ -194,13 +194,14 @@ final class LambdaSubscriber<T>
 
 	public static void main(String[] args) {
 		//Hooks.onOperatorDebug();
-		Flux.range(1, 10)
-				.map(x->x+1)
+		/*Flux.range(1, 10)
+				.map(x -> x + 1)
 				.take(3)
-				.subscribe(System.out::println);
+				.filter(x -> x != 1)
+				.subscribe(System.out::println);*/
 
 
-		/*Flux.just("tom")
+		Flux.just("tom")
 				.map(s -> {
 					System.out.println("(concat @qq.com) at [" + Thread.currentThread() + "]");
 					return s.concat("@qq.com");
@@ -214,13 +215,15 @@ final class LambdaSubscriber<T>
 					System.out.println("(startsWith f) at [" + Thread.currentThread() + "]");
 					return s.startsWith("t");
 				})
+				//Schedulers.newParallel ：创建线程池，初始化线程池工厂，初始化线程池调度器
+				//创建FluxPublishOn
 				.publishOn(Schedulers.newParallel("thread-b"))
 				.map(s -> {
 					System.out.println("(to length) at [" + Thread.currentThread() + "]");
 					return s.length();
 				})
 				.subscribeOn(Schedulers.newSingle("source"))
-				.subscribe();*/
+				.subscribe();
 
 
 		/*Flux<Integer> flux = Flux.range(1, 10)
@@ -228,5 +231,9 @@ final class LambdaSubscriber<T>
 				.take(3);
 		flux.subscribe(System.out::println);*/
 
+	}
+
+	public static void source1 (){
+		System.out.println("(source1) at [" + Thread.currentThread() + "]");
 	}
 }

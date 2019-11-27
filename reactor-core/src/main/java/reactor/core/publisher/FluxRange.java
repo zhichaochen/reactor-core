@@ -224,14 +224,19 @@ final class FluxRange extends Flux<Integer>
 			           SynchronousSubscription<Integer> {
 
 		final ConditionalSubscriber<? super Integer> actual;
-
+		//range 的结束的值
 		final long end;
-
+		//判断本次链式操作是否被取消。
 		volatile boolean cancelled;
-
+		//range 的开始的值
 		long index;
-
+		//记录请求元素总数，元素总数不能超过Long.MAX_VALUE
 		volatile long requested;
+		/**
+		 * 负责【原子更新】上面的requested字段，
+		 *
+		 * AtomicLongFieldUpdater能原子更新类中带volatile关键字的属性
+		 */
 		static final AtomicLongFieldUpdater<RangeSubscriptionConditional> REQUESTED =
 				AtomicLongFieldUpdater.newUpdater(RangeSubscriptionConditional.class, "requested");
 
@@ -248,13 +253,20 @@ final class FluxRange extends Flux<Integer>
 			return actual;
 		}
 
+		/**
+		 * 像range算子，直接就是执行流去了，他只能放在首位（在Flux中提供了静态方法）。
+		 * 像map算子的话，只能请求上一个算子，他只能放在中间（在Flux中是实例方法。）
+		 */
 		@Override
 		public void request(long n) {
+			//验证请求的元素是否小于0.
 			if (Operators.validate(n)) {
 				if (Operators.addCap(REQUESTED, this, n) == 0) {
 					if (n == Long.MAX_VALUE) {
+						//一次请求所有的元素
 						fastPath();
 					} else {
+						//请求部分元素
 						slowPath(n);
 					}
 				}
@@ -266,25 +278,44 @@ final class FluxRange extends Flux<Integer>
 			cancelled = true;
 		}
 
+		/**
+		 * 快处理方式（直接一次性处理所有的元素）
+		 *
+		 * 当直接请求Long.MAX_VALUE 个，走该方法。
+		 */
 		void fastPath() {
+			//fastPath，表示请求所有的，本次执行的元素的最大便是end，故而直接将end 赋给e。
 			final long e = end;
+			//actual,记录该算子的订阅者的，下一个算子的订阅者。
 			final ConditionalSubscriber<? super Integer> a = actual;
-
+			//循环所有的元素
 			for (long i = index; i != e; i++) {
+				//每执行一个元素，都要判断是否被取消
 				if (cancelled) {
 					return;
 				}
-
+				/**
+				 * 交给下一个算子，继续处理该元素。
+				 *
+				 * 特别注意：算子是一个个的传递下去的。
+				 */
 				a.tryOnNext((int) i);
 			}
 
 			if (cancelled) {
 				return;
 			}
-
+			//发送元素完毕，调用用下一个算子的onComplete 处理完成状态。
 			a.onComplete();
 		}
 
+		/**
+		 * 慢处理方式（根据请求的元素的个数，进行处理。）
+		 *
+		 * 如果请求的元素个数n > end-start,也是直接处理所有元素
+		 * 如果n < end-start:则需要多次请求。
+		 * @param n
+		 */
 		void slowPath(long n) {
 			final ConditionalSubscriber<? super Integer> a = actual;
 
@@ -297,7 +328,11 @@ final class FluxRange extends Flux<Integer>
 				if (cancelled) {
 					return;
 				}
-
+				/**
+				 * 要么从0-请求n，要么从start-end
+				 *
+				 * 无论哪个先到，都会停止while循环。
+				 */
 				while (e != n && i != f) {
 
 					boolean b = a.tryOnNext((int) i);
@@ -316,6 +351,7 @@ final class FluxRange extends Flux<Integer>
 					return;
 				}
 
+				//表示所有元素处理完成。
 				if (i == f) {
 					a.onComplete();
 					return;

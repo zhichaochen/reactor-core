@@ -34,6 +34,8 @@ import reactor.util.annotation.Nullable;
  *
  * @param <T> the value type
  * @see <a href="https://github.com/reactor/reactive-streams-commons">https://github.com/reactor/reactive-streams-commons</a>
+ *
+ * 执行Callable并在给定的Scheduler上发出其值。
  */
 final class FluxSubscribeOnCallable<T> extends Flux<T> implements Fuseable, Scannable {
 

@@ -29,6 +29,8 @@ import reactor.util.annotation.Nullable;
  * creating {@link Thread} with a prefix (which can be retrieved with the {@link #get()} method).
  *
  * @author Simon Baslé
+ *
+ * 设置线程工厂
  */
 class ReactorThreadFactory implements ThreadFactory,
                                       Supplier<String>,
