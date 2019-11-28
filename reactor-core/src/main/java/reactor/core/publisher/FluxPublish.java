@@ -47,11 +47,13 @@ final class FluxPublish<T> extends ConnectableFlux<T> implements Scannable {
 
 	/**
 	 * The source observable.
+	 * 记录他上游的算子。
 	 */
 	final Flux<? extends T> source;
 
 	/**
 	 * The size of the prefetch buffer.
+	 * 预取的缓冲区大小
 	 */
 	final int prefetch;
 

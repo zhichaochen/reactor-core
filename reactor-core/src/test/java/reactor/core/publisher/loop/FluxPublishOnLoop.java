@@ -28,6 +28,8 @@ import reactor.test.StepVerifier;
 
 /**
  * @author Stephane Maldini
+ *
+ * 帮助测试FluxPublishOn
  */
 public class FluxPublishOnLoop {
 

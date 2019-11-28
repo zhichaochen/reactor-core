@@ -24,5 +24,7 @@ package reactor.core.scheduler;
  * {@link Schedulers#isNonBlockingThread(Thread)}
  *
  * @author Simon Baslé
+ *
+ * 执行Reactor时，在Threads上检测到的标记接口阻塞API，导致这些调用引发异常。
  */
 public interface NonBlocking { }

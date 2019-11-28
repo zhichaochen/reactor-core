@@ -1180,6 +1180,7 @@ public abstract class Schedulers {
 			throw Exceptions.failWithRejected();
 		}
 
+		//然后去启动线程
 		try {
 			Future<?> f;
 			if (delay <= 0L) {

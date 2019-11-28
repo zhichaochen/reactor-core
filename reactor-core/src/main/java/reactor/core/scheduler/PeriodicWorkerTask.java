@@ -26,6 +26,8 @@ import java.util.concurrent.atomic.AtomicReferenceFieldUpdater;
 
 /**
  * A runnable task for {@link Scheduler} Workers that can run periodically
+ *
+ * 可以启动一个周期性的任务。
  **/
 final class PeriodicWorkerTask implements Runnable, Disposable, Callable<Void> {
 

@@ -82,6 +82,13 @@ final class BoundedElasticScheduler
 
 	volatile boolean shutdown;
 
+	/**
+	 * 剩余的线程数，表示线程池中，暂时空闲的线程。
+	 *
+	 * AtomicIntegerFieldUpdater ：用于更新某个类中被volatile修饰的字段。
+	 * param1 ：表示更新那个对象
+	 * param2 ：表示更新对象中的那个属性
+	 */
 	volatile int                                                    remainingThreads;
 	static final AtomicIntegerFieldUpdater<BoundedElasticScheduler> REMAINING_THREADS =
 			AtomicIntegerFieldUpdater.newUpdater(BoundedElasticScheduler.class, "remainingThreads");
@@ -186,18 +193,31 @@ final class BoundedElasticScheduler
 		}
 	}
 
-
+	/**
+	 * 创建线程
+	 *
+	 * @return
+	 */
 	@Override
 	public Worker createWorker() {
 		if (shutdown) {
 			return new ActiveWorker(SHUTDOWN);
 		}
-		//try to see if there is an idle worker
+		//
+		/**
+		 * try to see if there is an idle worker
+		 * 判断是否有空闲的线程。
+		 * 1、如果有直接使用。
+		 * 2、如果没有创建线程
+		 *
+		 * 可能这就是线程
+		 */
 		CachedServiceExpiry e = idleServicesWithExpiry.pollLast();
 		if (e != null) {
 			return new ActiveWorker(e.cached);
 		}
 
+		//decrementAndGet < 0 :表示没有空闲的线程。
 		if (REMAINING_THREADS.decrementAndGet(this) < 0) {
 			//cap reached
 			REMAINING_THREADS.incrementAndGet(this);
@@ -648,6 +668,14 @@ final class BoundedElasticScheduler
 			return aw.schedule(task, delay, unit);
 		}
 
+		/**
+		 * 周期调度线程
+		 * @param task the task to schedule
+		 * @param initialDelay the initial delay amount, non-positive values indicate non-delayed scheduling
+		 * @param period the period at which the task should be re-executed
+		 * @param unit the unit of measure of the delay amount
+		 * @return
+		 */
 		@Override
 		public Disposable schedulePeriodically(Runnable task,
 				long initialDelay,

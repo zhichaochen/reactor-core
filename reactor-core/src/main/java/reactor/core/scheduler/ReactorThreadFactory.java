@@ -30,15 +30,18 @@ import reactor.util.annotation.Nullable;
  *
  * @author Simon Baslé
  *
- * 设置线程工厂
+ * Reactor线程工厂
  */
 class ReactorThreadFactory implements ThreadFactory,
                                       Supplier<String>,
                                       Thread.UncaughtExceptionHandler {
-
+	//线程工厂名，表示那个线程工厂生产的线程
 	final private String                        name;
+	//线程计数器
 	final private AtomicLong                    counterReference;
+	//是否守护线程
 	final private boolean                       daemon;
+	//拒绝策略
 	final private boolean                       rejectBlocking;
 
 	@Nullable
@@ -58,19 +61,27 @@ class ReactorThreadFactory implements ThreadFactory,
 
 	@Override
 	public final Thread newThread(@NotNull Runnable runnable) {
+		//线程名：线程工厂name-num
 		String newThreadName = name + "-" + counterReference.incrementAndGet();
 		Thread t = rejectBlocking
 				? new NonBlockingThread(runnable, newThreadName)
 				: new Thread(runnable, newThreadName);
+		//设置守护线程
 		if (daemon) {
 			t.setDaemon(true);
 		}
+		//设置异常处理器
 		if (uncaughtExceptionHandler != null) {
 			t.setUncaughtExceptionHandler(this);
 		}
 		return t;
 	}
 
+	/**
+	 * 未捕获异常
+	 * @param t
+	 * @param e
+	 */
 	@Override
 	public void uncaughtException(Thread t, Throwable e) {
 		if (uncaughtExceptionHandler == null) {

@@ -11,6 +11,9 @@
 
     publishOn：异步执行某个算子的任务。
     subscribeOn：异步去request请求上游数据
+
+    多个线程如何交互，如何一起终止，参见WorkerTask类。
+
 1、多个算子如何实现上游可以调用下游，同时，下游也调用上游的？
     参见Flux#subscribe(Subscriber<? super T> actual) 方法。
 
@@ -57,6 +60,12 @@
 
 
 4、如何进行线程切换
+    因为publishOn的出现，涉及到了线程切换的问题。
+    比如：
+        map算子的由一个线程执行
+        filter算子的由另一个线程执行。
+        这分别属于不同的线程，那么需要在线程间进行切换。
+
 5、如何异步消费数据（即publishOn原理）
     publishOn原理：
         1、上游数据发送到 FluxPublishOn#onNext中
@@ -74,3 +83,6 @@
 
         经过publishOn之后，就变成了多个线程。
         数据先缓存在FluxPublishOn的queue中，然后再开启多个线程去消费queue中的数据。
+
+6、工作窃取
+    当任务来了，时候空闲的线程是否是工作窃取呢？

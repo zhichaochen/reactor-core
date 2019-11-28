@@ -54,6 +54,7 @@ public interface Fuseable {
 	 * If such mapper invocation is costly, it would escape its thread boundary this way.
 	 *
 	 * 指示队列将从另一个线程中排出，因此，任何队列退出计算在那一点可能是无效的。
+	 * thread_barrier :线程障碍
 	 */
 	int THREAD_BARRIER = 4;
 

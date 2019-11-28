@@ -39,12 +39,18 @@ import reactor.util.annotation.Nullable;
  * and lookahead doesn't really matter with small queues.
  *
  * @param <T> the value type
+ *
+ * 一个增强的队列
  */
 final class SpscLinkedArrayQueue<T> extends AbstractQueue<T>
 		implements BiPredicate<T, T> {
 
 	final int mask;
 
+	/**
+	 * 这个用来表示当前生产者生成数据的index，实际上这个变量不是指生成数据的index，
+	 * 而是要跟相应的mask计算才是，此变量只增不减。
+	 */
 	volatile long producerIndex;
 	@SuppressWarnings("rawtypes")
 	static final AtomicLongFieldUpdater<SpscLinkedArrayQueue> PRODUCER_INDEX =
@@ -52,6 +58,9 @@ final class SpscLinkedArrayQueue<T> extends AbstractQueue<T>
 					"producerIndex");
 	AtomicReferenceArray<Object> producerArray;
 
+	/**
+	 * 表示当前消费者需要消费的数据的index，意义跟producerIndex差不多。
+	 */
 	volatile long consumerIndex;
 	@SuppressWarnings("rawtypes")
 	static final AtomicLongFieldUpdater<SpscLinkedArrayQueue> CONSUMER_INDEX =

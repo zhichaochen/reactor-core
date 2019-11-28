@@ -24,6 +24,11 @@ import reactor.util.annotation.Nullable;
 /**
  * Indicates that a task or resource can be cancelled/disposed.
  * <p>Call to the dispose method is/should be idempotent.
+ *
+ * 任务是否被丢弃。（本质上是Future#cancel(boolean)）
+ *
+ * void dispose()：丢弃任务
+ * boolean isDisposed()：任务是否被丢弃。
  */
 @FunctionalInterface
 public interface Disposable {
@@ -85,6 +90,16 @@ public interface Disposable {
 	 * elements by keeping a reference and using {@link #remove(Disposable)}, which puts
 	 * the responsibility of disposing said elements back in your hands. Note that once
 	 * disposed, the container cannot be reused and you will need a new {@link Composite}.
+	 *
+	 * 是Disposable他自己的一个容器，累积disposables，
+	 *
+	 * 使用dispose()方法一次性的处理他们
+	 * 使用add(Disposable)方法添加Disposable
+	 * 使用remove(Disposable)方法移除Disposable
+	 *
+	 * 注意：Composite一旦dispose后，无法重用容器，需要创建一个新的Composite
+	 *
+	 * 比如：某个算子开启的所有线程，可以一次性的丢弃。
 	 *
 	 * @author Simon Baslé
 	 */
