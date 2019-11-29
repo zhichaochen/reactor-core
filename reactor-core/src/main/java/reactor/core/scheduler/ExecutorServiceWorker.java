@@ -26,7 +26,10 @@ import reactor.core.Scannable;
 /**
  * @author Stephane Maldini
  *
- * 管理多个线程。
+ * 管理线程池中的多个线程。
+ *
+ * 相比XXXSchedule来说：重点在于对线程池中的每个线程的管理，比如tasks.dispose。
+ * XXXSchedule：重点在线程池的管理。
  */
 final class ExecutorServiceWorker implements Scheduler.Worker, Disposable, Scannable {
 
@@ -60,6 +63,15 @@ final class ExecutorServiceWorker implements Scheduler.Worker, Disposable, Scann
 		return Schedulers.workerSchedule(exec, tasks, task, delay, unit);
 	}
 
+	/**
+	 * 开启周期性线程
+	 *
+	 * @param task the task to schedule
+	 * @param initialDelay the initial delay amount, non-positive values indicate non-delayed scheduling
+	 * @param period the period at which the task should be re-executed
+	 * @param unit the unit of measure of the delay amount
+	 * @return
+	 */
 	@Override
 	public Disposable schedulePeriodically(Runnable task,
 			long initialDelay,

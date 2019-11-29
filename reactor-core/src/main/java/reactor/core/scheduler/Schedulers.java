@@ -723,6 +723,8 @@ public abstract class Schedulers {
 	 * @return the decorated {@link ScheduledExecutorService}, or the original if no decorator is set up
 	 * @see #addExecutorServiceDecorator(String, BiFunction)
 	 * @see #removeExecutorServiceDecorator(String)
+	 *
+	 * 装饰线程池，用于对该对象做一些什么操作。然后再返回该对象。
 	 */
 	public static ScheduledExecutorService decorateExecutorService(Scheduler owner, ScheduledExecutorService original) {
 		synchronized (DECORATORS) {
@@ -1101,6 +1103,10 @@ public abstract class Schedulers {
 		}
 	}
 
+	/**
+	 * 直接在XXXScheduler（调度器）中开启线程
+	 * 区别于在 ExecutorServiceWorker 中开启线程。
+	 */
 	static Disposable directSchedule(ScheduledExecutorService exec,
 			Runnable task,
 			@Nullable Disposable parent,
@@ -1120,6 +1126,9 @@ public abstract class Schedulers {
 		return sr;
 	}
 
+	/**
+	 * 创建并开启周期线程。
+	 */
 	static Disposable directSchedulePeriodically(ScheduledExecutorService exec,
 			Runnable task,
 			long initialDelay,
@@ -1127,6 +1136,9 @@ public abstract class Schedulers {
 			TimeUnit unit) {
 		task = onSchedule(task);
 
+		/**
+		 * Instant:立即的，瞬时
+		 */
 		if (period <= 0L) {
 			InstantPeriodicWorkerTask isr =
 					new InstantPeriodicWorkerTask(task, exec);
@@ -1155,12 +1167,8 @@ public abstract class Schedulers {
 	 * 1、如果不延迟，直接启动线程
 	 * 2、如果延迟，则过了延迟时间，启动线程
 	 *
-	 * @param exec
-	 * @param tasks Composite中存储多个任务。
-	 * @param task 单个job，例如FluxPublishOn
-	 * @param delay 是否延迟
-	 * @param unit
-	 * @return
+	 * 在ExecutorServiceWorker 中调用。
+	 *
 	 */
 	static Disposable workerSchedule(ScheduledExecutorService exec,
 			Disposable.Composite tasks,

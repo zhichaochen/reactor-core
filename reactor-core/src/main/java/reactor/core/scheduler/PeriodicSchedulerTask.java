@@ -24,6 +24,9 @@ import java.util.concurrent.Future;
 import java.util.concurrent.FutureTask;
 import java.util.concurrent.atomic.AtomicReferenceFieldUpdater;
 
+/**
+ * 周期调度任务
+ */
 final class PeriodicSchedulerTask implements Runnable, Disposable, Callable<Void> {
 
 	final Runnable task;

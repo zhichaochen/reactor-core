@@ -47,6 +47,16 @@ import reactor.util.function.Tuple2;
  *     implementations.
  *
  * @author Stephane Maldini
+ *
+ * 可扫描组件以非严格内存一致的方式公开状态，并且结果应该被理解为潜在状态的最佳努力提示。
+ *
+ * 这对于重新设计组件图（如flux 算子链）非常有用
+ *
+ * Scannable对于高级用户来说也是一个有用的工具，他们渴望去了解，
+ * 我们管理在包范围内的schedulers 和 operators 实现的，各种状态。
+ *
+ * 我的理解是：
+ * 		通过调用该接口的实现，能观察到一些【运行时的状态】。
  */
 @FunctionalInterface
 public interface Scannable {
@@ -175,6 +185,8 @@ public interface Scannable {
 		 * {@link Scheduler}, provided these are {@link Scannable}. Will return
 		 * {@link Attr#UNAVAILABLE_SCAN} if the supporting execution is not Scannable or
 		 * {@link Attr#NULL_SCAN} if the operator doesn't define a specific runtime.
+		 *
+		 * 一个Scannable到另一个Scannable
 		 */
 		public static final Attr<Scannable> RUN_ON = new Attr<>(null, Scannable::from);
 

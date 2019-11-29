@@ -88,7 +88,54 @@
 	        一个线程进入了另一个线程中，说明当前线程被阻塞了。
 	        设置cancel(true)，是可以结束一个正在运行的线程。
 
-3、compareAndSet()
+3、AtomicXXXFieldUpdater用法与好处
+    这里以AtomicReferenceFieldUpdater为例
+
+    作用：更新被volatile修饰的属性。
+
+    //在多线程环境下频繁更新的属性
+    volatile Future<?> future;
+
+    创建属性更新器
+        参数1 ：更新字段所在类的类型
+        参数2 ：更新字段的类型
+        参数3 ：更新的目标字段
+	static final AtomicReferenceFieldUpdater<PeriodicSchedulerTask, Future> FUTURE =
+			AtomicReferenceFieldUpdater.newUpdater(PeriodicSchedulerTask.class, Future.class, "future");
+
+    常用的方法：
+        //【原子更新】指定对象的指定字段的值，当当前值等于预期值时，则用update更新该值，成功返回true<br>
+        public final boolean compareAndSet(T obj, V expect, V update);
+
+        //将给定对象的指定字段设置为指定值<br>
+         public final void set(T obj, V newValue);<br>
+
+        //原子更新指定对象的指定字段的值<br>
+        public abstract boolean weakCompareAndSet(T obj, V expect, V update);<br>
+
+        //将给定对象的指定字段更新为指定值，与set不同的是，该方法不会立刻修改旧值，而是会延迟一些<br>
+        public final void lazySet(T obj, V newValue);<br>
+
+        //获取此更新器管理的指定对象的字段的当前值<br>
+        public final V get(T obj);<br>
+
+        //原子更新该更新器管理的指定对象的字段的值为newValue，返回旧值<br>
+        public V getAndSet(T obj, V newValue);<br>
+
+        原子更新更新器管理的指定对象的值，newValue为updateFunction的apply方法返回的值<br>
+        public final V updateAndGet(T obj, UnaryOperator<V> updateFunction);<br>
+
+        //通过给定值和当前值计算新值，进行原子更新，返回旧值
+        public final V getAndAccumulate(T obj, V x,BinaryOperator<V> accumulatorFunction);<br>
+
+        //与上一个方法相同，不同在于返回新值
+        public final V accumulateAndGet(T obj, V x,BinaryOperator<V> accumulatorFunction);<br>
+
+    为啥要用该类呢？
+        因为该类效率更高。
+        使用compareAndSet 代替volatile 的内存屏障
+
+3.1、compareAndSet()
     在AtomicInteger.java里，CAS是这么被实际应用的，就拿里头的自增函数来说：
 
     public final int incrementAndGet() {
@@ -118,7 +165,34 @@
     	    break;
     	}
 
-4、
+4、ScheduledExecutorService（延迟/周期执行线程池）
+    scheduled a. 1.预定的；预定时间的 2.事先安排的 3.按时间表的，定期的
+    特别注意：有周期性的意思。
+    Scheduler：调度器
+
+    ScheduledExecutorService：https://blog.csdn.net/wangmx1993328/article/details/80840598
+    ThreadPoolExecutor：https://blog.csdn.net/wangmx1993328/article/details/80622181
+
+    Scheduled Start Date 预计开始日期
+    scheduled date 指定日期
+    Scheduled Finish Date 预计完成日期
+    scheduled start tine 【计】 预定开始时间
+    scheduled completion date 计划完工日期
+    early start date 最早开始时间
+    late start date 最晚开始时间
+    be scheduled to vt.预定
+    as scheduled 按照原定计划,按时
+    be scheduled for 订于…,定于…
+
+    可安排在给定的延迟后运行或定期执行的命令。
+    schedule 方法使用各种延迟创建任务，并返回一个可用于取消或检查执行的任务对象
+    scheduleAtFixedRate 和 scheduleWithFixedDelay 方法创建并执行某些在取消前一直定期运行的任务
+    所有的 schedule 方法都接受相对延迟和周期作为参数，而不是绝对的时间或日期
+    SheduleExecutorService 是JDK 1.5出来的，比以前的Timer性能好
+
+
+
+
 
 
 

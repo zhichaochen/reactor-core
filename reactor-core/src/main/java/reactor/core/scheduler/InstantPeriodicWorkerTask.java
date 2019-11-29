@@ -27,6 +27,8 @@ import reactor.util.annotation.Nullable;
 
 /**
  * A runnable task for {@link Scheduler} Workers that can run periodically
+ *
+ * 即时周期任务
  **/
 final class InstantPeriodicWorkerTask implements Disposable, Callable<Void> {
 

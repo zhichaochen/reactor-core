@@ -84,9 +84,16 @@ final class FluxPublishOn<T> extends InternalFluxOperator<T, T> implements Fusea
 		return prefetch;
 	}
 
+	/**
+	 * 下游算子订阅上游算子
+	 *
+	 * @param actual
+	 * @return
+	 */
 	@Override
 	@SuppressWarnings("unchecked")
 	public CoreSubscriber<? super T> subscribeOrReturn(CoreSubscriber<? super T> actual) {
+		//
 		Worker worker;
 
 		try {
