@@ -940,6 +940,10 @@ public abstract class Flux<T> implements CorePublisher<T> {
 	 * @param <T> The type of values in both source and output sequences
 	 *
 	 * @return a new {@link Flux}
+	 *
+	 * 用Flux Api 修饰指定的Publisher
+	 *
+	 * 本质上，是将一个XXFlux转换成一个Flux
 	 */
 	public static <T> Flux<T> from(Publisher<? extends T> source) {
 		if (source instanceof Flux) {
@@ -950,11 +954,14 @@ public abstract class Flux<T> implements CorePublisher<T> {
 
 		if (source instanceof Fuseable.ScalarCallable) {
 			try {
+				//如果是标量的，直接调用call返回，参见FluxError
 				@SuppressWarnings("unchecked") T t =
 						((Fuseable.ScalarCallable<T>) source).call();
+				//如果不为null，just
 				if (t != null) {
 					return just(t);
 				}
+				//
 				return empty();
 			}
 			catch (Exception e) {

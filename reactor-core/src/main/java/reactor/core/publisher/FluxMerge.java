@@ -27,6 +27,14 @@ import reactor.core.CoreSubscriber;
  * Merges a fixed array of Publishers.
  * @param <T> the element type of the publishers
  * @see <a href="https://github.com/reactor/reactive-streams-commons">Reactive-Streams-Commons</a>
+ *
+ *  将【多个源publisher】中的【元素】【合并到一个新的publisher】序列中 【重复的元素不会覆盖】。
+ *  例如：
+ *  Flux.merge(Flux.just(0, 1, 2, 3), Flux.just(7, 5, 6), Flux.just(4, 7), Flux.just(4, 7))
+ * 				.toStream()
+ * 				.forEach(System.out::print);
+ *
+ * 	输出结果：01237564747
  */
 final class FluxMerge<T> extends Flux<T> implements SourceProducer<T> {
 

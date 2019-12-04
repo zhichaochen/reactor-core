@@ -29,6 +29,8 @@ import reactor.core.CoreSubscriber;
  * @param <T> the value type
  *
  * @see <a href="https://github.com/reactor/reactive-streams-commons">Reactive-Streams-Commons</a>
+ *
+ * 错误处理，使用方式Mono.error(Exception)
  */
 final class FluxError<T> extends Flux<T> implements Fuseable.ScalarCallable, SourceProducer<T> {
 
@@ -38,11 +40,19 @@ final class FluxError<T> extends Flux<T> implements Fuseable.ScalarCallable, Sou
 		this.error = Objects.requireNonNull(error);
 	}
 
+	/**
+	 * 声明成一个EmptySubscriber，并将异常设置到OnError方法。
+	 */
 	@Override
 	public void subscribe(CoreSubscriber<? super T> actual) {
 		Operators.error(actual, error);
 	}
 
+	/**
+	 * 调用的时候，直接抛出异常。
+	 * @return
+	 * @throws Exception
+	 */
 	@Override
 	public Object call() throws Exception {
 		if(error instanceof Exception){

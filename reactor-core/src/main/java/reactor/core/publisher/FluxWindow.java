@@ -39,6 +39,23 @@ import reactor.util.context.Context;
  * @param <T> the value type
  *
  * @see <a href="https://github.com/reactor/reactive-streams-commons">https://github.com/reactor/reactive-streams-commons</a>
+ *
+ * 从起始位置开始将source sequence拆分成固定大小的flux
+ * 例如：
+ * 		Flux<Flux<Integer>> window = Flux.range(1, 10)
+ * 				.window(3);
+ * 		window.subscribe(integerFlux -> {
+ * 			System.out.println("+++++分隔符+++++");
+ * 			integerFlux.subscribe(System.out::println);
+ *                });
+ *
+ * 		或者：
+ *      window.toStream().forEach(integerFlux -> {
+ * 			System.out.println("+++++分隔符+++++");
+ * 			integerFlux.subscribe(System.out::println);
+ *                });
+ *
+ * 结果：123，456，789，10
  */
 final class FluxWindow<T> extends InternalFluxOperator<T, Flux<T>> {
 

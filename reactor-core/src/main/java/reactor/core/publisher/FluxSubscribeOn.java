@@ -97,15 +97,19 @@ final class FluxSubscribeOn<T> extends InternalFluxOperator<T, T> {
 		//表示请求的线程，是否是新创建的线程。
 		final boolean requestOnSeparateThread;
 
+		/**
+		 *
+		 */
 		volatile Subscription s;
 		static final AtomicReferenceFieldUpdater<SubscribeOnSubscriber, Subscription> S =
 				AtomicReferenceFieldUpdater.newUpdater(SubscribeOnSubscriber.class,
 						Subscription.class,
 						"s");
 
-
+		/**
+		 *
+		 */
 		volatile long requested;
-
 		@SuppressWarnings("rawtypes")
 		static final AtomicLongFieldUpdater<SubscribeOnSubscriber> REQUESTED =
 				AtomicLongFieldUpdater.newUpdater(SubscribeOnSubscriber.class,

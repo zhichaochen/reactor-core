@@ -29,6 +29,11 @@ import reactor.core.Fuseable.ConditionalSubscriber;
  *
  * @param <T> the value type
  * @see <a href="https://github.com/reactor/reactive-streams-commons">Reactive-Streams-Commons</a>
+ *
+ * 打印日志信息。
+ *
+ * 它会读（只读，peek）每一个 在【其上游的】 Flux 或 Mono 【事件】
+ * （包括 onNext、onError、 onComplete， 以及 订阅、 取消、和 请求）。
  */
 final class FluxLog<T> extends InternalFluxOperator<T, T> {
 

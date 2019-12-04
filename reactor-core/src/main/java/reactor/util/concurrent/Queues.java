@@ -86,6 +86,9 @@ public final class Queues {
 	/**
 	 * A small default of available slots in a given container, compromise between intensive pipelines, small
 	 * subscribers numbers and memory use.
+	 *
+	 * 1、如果没有设置reactor.bufferSize.small该值，则reactor.bufferSize.small设置为256
+	 * 2、再取16 和 reactor.bufferSize.small 中的最大的值。
 	 */
 	public static final int SMALL_BUFFER_SIZE = Math.max(16,
 			Integer.parseInt(System.getProperty("reactor.bufferSize.small", "256")));
@@ -97,6 +100,15 @@ public final class Queues {
 	 * @param x Value to round up
 	 *
 	 * @return The next power of 2 from x inclusive
+	 * ===============================================
+	 *
+	 * Integer.numberOfLeadingZeros ：
+	 * 		作用是返回无符号整型i的最高非零位前面的0的个数，包括符号位在内；
+	 * 		我的总结：就是返回非0整数前面有多少个0
+	 * 		比如10，0000 0000 0000 0000 0000 0000 0000 1010
+	 * 		总共32 位，实际占了4位，剩下28位。
+	 *
+	 * 	该方法的作用就是，x 乘以 2
 	 */
 	public static int ceilingNextPowerOfTwo(final int x) {
 		return 1 << (32 - Integer.numberOfLeadingZeros(x - 1));
@@ -486,6 +498,8 @@ public final class Queues {
     static final Supplier XS_SUPPLIER    = () -> new SpscArrayQueue<>(XS_BUFFER_SIZE);
 	@SuppressWarnings("rawtypes")
     static final Supplier SMALL_SUPPLIER = () -> new SpscArrayQueue<>(SMALL_BUFFER_SIZE);
+
+	//默认是256.
 	@SuppressWarnings("rawtypes")
 	static final Supplier SMALL_UNBOUNDED =
 			() -> new SpscLinkedArrayQueue<>(SMALL_BUFFER_SIZE);

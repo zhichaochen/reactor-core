@@ -29,6 +29,22 @@ import reactor.util.annotation.Nullable;
  *
  * @param <T> the value type
  * @see <a href="https://github.com/reactor/reactive-streams-commons">Reactive-Streams-Commons</a>
+ *
+ * Flux.concat:
+ * 作用是：将【concat内的】【多个Flux,多个Mono】的元素，放入一个数组当中。
+ * 例如：
+ * Flux.concat(Mono.just(3), Mono.just(4), Flux.just(1, 2))
+ * 				.subscribe(System.out::println);
+ *
+ * 输出：3,4,1,2
+ *
+ * 注意，如果concat有上游算子，和上游算子没关系
+ *  Flux.just(1, 2)
+ *         .concat(Flux.just(5, 8))
+ *         .toStream()
+ *         .forEach(System.out::println);
+ *
+ *  输出5，8
  */
 final class FluxConcatArray<T> extends Flux<T> implements SourceProducer<T> {
 

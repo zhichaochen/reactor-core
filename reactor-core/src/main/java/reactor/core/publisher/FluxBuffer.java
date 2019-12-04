@@ -36,13 +36,15 @@ import reactor.util.context.Context;
  * @param <C> the buffer collection type
  *
  * @see <a href="https://github.com/reactor/reactive-streams-commons">Reactive-Streams-Commons</a>
+ *
+ * 缓存数据，当达到一定数量，或者达到某个条件之后，才进行流式操作
  */
 final class FluxBuffer<T, C extends Collection<? super T>> extends InternalFluxOperator<T, C> {
-
+	//缓存元素的size，也就是说要缓存多少元素
 	final int size;
-
+	//跳过多少个元素。
 	final int skip;
-
+	//缓存数据到的集合。
 	final Supplier<C> bufferSupplier;
 
 	FluxBuffer(Flux<? extends T> source, int size, Supplier<C> bufferSupplier) {

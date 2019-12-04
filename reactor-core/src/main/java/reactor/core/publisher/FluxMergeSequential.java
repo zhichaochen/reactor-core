@@ -45,6 +45,8 @@ import reactor.util.context.Context;
  * @param <T> the source value type
  * @param <R> the output value type
  * @see <a href="https://github.com/reactor/reactive-streams-commons">Reactive-Streams-Commons</a>
+ *
+ * ​【按订阅顺序】连接（这里的合并仍然可以理解成序列的连接
  */
 final class FluxMergeSequential<T, R> extends InternalFluxOperator<T, R> {
 

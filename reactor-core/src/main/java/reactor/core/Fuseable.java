@@ -66,7 +66,7 @@ public interface Fuseable {
 	 *
 	 * @param <T> the value type
 	 *
-	 * 一种订阅者变量，可以立即判断它是否被消费值
+	 * 一种订阅者变量，可以立即判断它是否消费了该值
 	 * 直接允许发送新值（如果它没有）
 	 *
 	 * 这避免了用request(1) 往返删掉的值
@@ -76,15 +76,14 @@ public interface Fuseable {
 		 * Try consuming the value and return true if successful.
 		 * @param t the value to consume, not null
 		 * @return true if consumed, false if dropped and a new value can be immediately sent
+		 *
+		 * 尝试去消费value
 		 */
 		boolean tryOnNext(T t);
 	}
 
 	/**
 	 * Support contract for queue-fusion based optimizations on subscriptions.
-	 *
-	 * 支持订阅上基于队列融合的优化的协定。
-	 * OptimizableOperator：可优化的算子，实现该接口，表示可以
 	 *
 	 * <ul>
 	 *  <li>
@@ -101,6 +100,12 @@ public interface Fuseable {
 	 * <p>
 	 *
 	 * @param <T> the value type emitted
+	 *
+	 * 支持订阅上基于队列融合的优化的协定。
+	 * OptimizableOperator：可优化的算子，实现该接口，表示可以
+	 *
+	 * 我的理解：表示可以通过 队列融合的方式 进行优化。
+	 * 上游生产者，发送数据到queue中，下游消费者开启多线程消费。
 	 */
 	interface QueueSubscription<T> extends Queue<T>, Subscription {
 		
@@ -223,6 +228,14 @@ public interface Fuseable {
 	 * optimizations.
 	 *
 	 * @param <T> the value type returned
+	 *
+	 * 指示目标可以返回值或者null，否则立即失效，这对assembly-time 是一个可行的优化。
+	 *
+	 *  我的总结：（直接调用call()方法返回结果，不再执行后面的步骤了。）
+	 *    实现该接口的类，可以直接返回值或者null，无需在链式结构中继续执行下去了。
+	 *    比如FluxError,当发生错误的时候，在subscribe的时候，会调用call方法，抛出异常，结束调用。
+	 *
+	 *  参见Flux.from的处理。
 	 */
 	interface ScalarCallable<T> extends Callable<T> { }
 }

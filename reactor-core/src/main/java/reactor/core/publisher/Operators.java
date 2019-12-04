@@ -1390,8 +1390,10 @@ public abstract class Operators {
 			log.error("Unexpected call to Operators.emptySubscriber()", e);
 		}
 	};
-	//
 
+	/**
+	 * 表示一个已经删除的订阅
+	 */
 	final static class CancelledSubscription implements Subscription, Scannable {
 		static final CancelledSubscription INSTANCE = new CancelledSubscription();
 
@@ -1815,6 +1817,10 @@ public abstract class Operators {
 	 *
 	 * @param <I> the input value type
 	 * @param <O> the output value type
+	 *
+	 * 多个订阅的订阅者，
+	 * 比如： SwitchIfEmptySubscriber，会有两个订阅者，一个是主将，一个是备用。
+	 * 类似于map.getOrDefault.
 	 */
 	abstract static class MultiSubscriptionSubscriber<I, O>
 			implements InnerOperator<I, O> {

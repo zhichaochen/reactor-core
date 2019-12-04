@@ -27,6 +27,9 @@ import reactor.util.annotation.Nullable;
  * A connecting {@link Flux} Publisher (right-to-left from a composition chain perspective)
  *
  * @param <I> Upstream type
+ *
+ * 表示一个调用链的源头。
+ * 怎么说呢：比如
  */
 final class FluxSource<I> extends Flux<I> implements SourceProducer<I>,
                                                      OptimizableOperator<I, I> {

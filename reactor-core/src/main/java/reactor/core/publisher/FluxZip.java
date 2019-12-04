@@ -49,6 +49,33 @@ import static reactor.core.Fuseable.SYNC;
  * @param <R> the output value type
  *
  * @see <a href="https://github.com/reactor/reactive-streams-commons">Reactive-Streams-Commons</a>
+ *
+ * 一个算子和另一个算子的【同样位置的元素】形成元组。
+ *
+ * 例如：
+ * 		final AtomicInteger index = new AtomicInteger();
+ * 		Flux<Tuple2<String, String>> tuple2Flux = Flux.just("a", "b")
+ *            .zipWith(Flux.just("c","d"));
+ * 		//subscribe1
+ * 		tuple2Flux.subscribe(System.out::println);
+ * 		System.out.println("————— 分割线1 —————");
+ *
+ * 		//subscribe2
+ * 		tuple2Flux.subscribe(tupleFlux -> {
+ * 			System.out.println("t1—————" + index + "—————>" + tupleFlux.getT1());
+ * 			System.out.println("t2—————" + index + "—————>" + tupleFlux.getT2());
+ * 			index.incrementAndGet();
+ *                });
+ * 		System.out.println("————— 分割线2 —————");
+ * 结果：
+ * 		[a,c]
+ * 		[b,d]
+ * 		————— 分割线1 —————
+ * 		t1—————0—————>a
+ * 		t2—————0—————>c
+ * 		t1—————1—————>b
+ * 		t2—————1—————>d
+ * 		————— 分割线2 —————
  */
 final class FluxZip<T, R> extends Flux<R> implements SourceProducer<R> {
 

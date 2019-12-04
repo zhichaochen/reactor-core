@@ -31,6 +31,15 @@ import reactor.util.context.Context;
  * @param <T> the input and output value type
  *
  * @see <a href="https://github.com/reactor/reactive-streams-commons">Reactive-Streams-Commons</a>
+ *
+ * 【通过一个聚合函数聚合source items ，并返回一个最终的结果】。
+ *
+ * 对上游算子的元素通过函数进行归约。
+ * 因为归约之后只会有一个元素，故而，Flux.reduce,只会有MonoReduce。
+ * 例如：
+ *		Flux.just(1, 2, 3).reduce((x, y) -> x + y).subscribe(System.out::println);
+ * 结果等于：
+ *
  */
 final class MonoReduce<T> extends MonoFromFluxOperator<T, T>
 		implements Fuseable {

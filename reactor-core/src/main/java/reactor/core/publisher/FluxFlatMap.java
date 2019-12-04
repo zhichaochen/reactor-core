@@ -43,6 +43,18 @@ import reactor.util.context.Context;
  * @param <T> the source value type
  * @param <R> the result value type
  * @see <a href="https://github.com/reactor/reactive-streams-commons">Reactive-Streams-Commons</a>
+ *
+ * 执行函数操作，将执行结果，全部放在同一个数组中。
+ *
+ * flat：就是将多个数组的值，放入一个数组中。
+ * 		本来有多行的，只能有一行了。
+ * 例如：
+ * 		Flux.just(1, 2)
+ * 				.flatMap(x -> Flux.just(x * 10, 100))
+ * 				.toStream()
+ * 				.forEach(System.out::println);
+ *
+ * 	结果：10、100、20、100.
  */
 final class FluxFlatMap<T, R> extends InternalFluxOperator<T, R> {
 

@@ -72,7 +72,7 @@ final class FluxMapFuseable<T, R> extends InternalFluxOperator<T, R> implements 
 	}
 
 	/**
-	 * 表示
+	 * 可融合，表示可以进行工作窃取？？
 	 */
 	static final class MapFuseableSubscriber<T, R>
 			implements InnerOperator<T, R>,
@@ -82,7 +82,7 @@ final class FluxMapFuseable<T, R> extends InternalFluxOperator<T, R> implements 
 		final Function<? super T, ? extends R> mapper;
 
 		boolean done;
-
+		//Subscription的生命周期是订阅者对发布者的一次订阅。
 		QueueSubscription<T> s;
 
 		int sourceMode;
@@ -104,6 +104,7 @@ final class FluxMapFuseable<T, R> extends InternalFluxOperator<T, R> implements 
 
 		@Override
 		public void onNext(T t) {
+			//ASYNC 表示上游的生产者和下游的生产者不是同一个线程。
 			if (sourceMode == ASYNC) {
 				actual.onNext(null);
 			}

@@ -1,0 +1,288 @@
+参考：https://blog.csdn.net/weixx3/article/details/90792562
+
+总结：
+    log：
+1 buffer
+    //每次缓存一定数量的元素到List buckets里，并push出去
+    Flux.range(1, 30).buffer(20).subscribe(System.out::println);
+    System.out.println("---------- 分割线1 ----------");
+
+    //每次缓存一定数量，并跳过一定数量的元素到List buckets里，并push出去
+    Flux.range(1, 30).buffer(10,10).subscribe(System.out::println);
+    System.out.println("---------- 分割线2 ----------");
+
+    //每次缓存一定数量，并跳过一定数量的元素到指定的Set buckets里，并push出去
+    Flux.range(1, 30).buffer(20,20, HashSet::new).subscribe(System.out::println);
+    System.out.println("---------- 分割线3 ----------");
+
+    //指定时间内，每次缓存一定数量的元素到List buckets里，并push出去
+    Flux.intervalMillis(100).bufferMillis(500).take(3).toStream().forEach(System.out::println);
+    System.out.println("---------- 分割线4 ----------");
+
+    //缓存元素到List buckets里当符合条件时，把元素push出去
+    Flux.range(1, 10).bufferUntil(i -> i % 2 == 0).subscribe(System.out::println);
+    System.out.println("---------- 分割线5 ----------");
+
+    //把符合条件的缓存元素到List buckets里并把元素push出去
+    Flux.range(1, 10).bufferWhile(i -> i % 2 == 0).subscribe(System.out::println);
+
+执行结果：
+
+    ---------- buffer ----------
+    11:02:21.193 [main] DEBUG reactor.util.Loggers$LoggerFactory - Using Slf4j logging framework
+    [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20]
+    [21, 22, 23, 24, 25, 26, 27, 28, 29, 30]
+    ---------- 分割线1 ----------
+    [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
+    [11, 12, 13, 14, 15, 16, 17, 18, 19, 20]
+    [21, 22, 23, 24, 25, 26, 27, 28, 29, 30]
+    ---------- 分割线2 ----------
+    [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20]
+    [21, 22, 23, 24, 25, 26, 27, 28, 29, 30]
+    ---------- 分割线3 ----------
+    [0, 1, 2, 3]
+    [4, 5, 6, 7, 8]
+    [9, 10, 11, 12, 13]
+    ---------- 分割线4 ----------
+    [1, 2]
+    [3, 4]
+    [5, 6]
+    [7, 8]
+    [9, 10]
+    ---------- 分割线5 ----------
+    [2]
+    [4]
+    [6]
+    [8]
+    [10]
+    ————————————————
+2 filter
+    Flux.range(1, 10).filter(i -> i % 2 == 0).subscribe(System.out::println);
+
+执行结果：
+
+    2
+    4
+    6
+    8
+    10
+
+3、 window
+    public final Flux<Flux> window(int maxSize)
+    //从起始位置开始将source sequence拆分成固定大小的flux
+    Flux<Flux<Integer>> window = Flux.range(1, 10)
+            .window(3);
+    //subscribe1
+    window.subscribe(integerFlux -> {
+        System.out.println("+++++分隔符+++++");
+        integerFlux.subscribe(System.out::println);
+    });
+    System.out.println("---------- 分割线1 ----------");
+
+    //subscribe2
+    window.toStream().forEach(integerFlux -> {
+        System.out.println("+++++分隔符+++++");
+        integerFlux.subscribe(System.out::println);
+    });
+    System.out.println("---------- 分割线2 ----------");
+
+执行结果：
+
+    +++++分隔符+++++
+    1
+    2
+    3
+    +++++分隔符+++++
+    4
+    5
+    6
+    +++++分隔符+++++
+    7
+    8
+    9
+    +++++分隔符+++++
+    10
+
+    public final Flux<Flux> windowMillis(long timespan)
+    //在一定时间内将flux sequence拆分成连接的不同的flux
+    Flux.intervalMillis(1)
+            .windowMillis(3)
+            .take(3)
+            .toStream()
+            .forEach(longFlux -> {
+                System.out.println("+++++分隔符+++++");
+                longFlux.subscribe(System.out::println);
+            });
+执行结果：
+
+    +++++分隔符+++++
+    0
+    1
+    +++++分隔符+++++
+    2
+    3
+    4
+    +++++分隔符+++++
+    5
+    6
+
+4 zipWith
+   zipWith 将多个元素合并成元组，并从每个source产生元素直至结束
+   public final Flux<Tuple2<T, T2>> zipWith(Publisher<? extends T2> source2)
+
+
+   final AtomicInteger index = new AtomicInteger();
+   Flux<Tuple2<String, String>> tuple2Flux = Flux./just/(“a”, “b”)
+           .zipWith(Flux./just/(“c”, “d”));
+   //subscribe1
+   tuple2Flux.subscribe(System./out/::println);
+   System./out/.println(“————— 分割线1 —————“);
+
+   //subscribe2
+   tuple2Flux.subscribe(tupleFlux -> {
+       System./out/.println(“t1—————“ + index + “—————>” + tupleFlux.getT1());
+       System./out/.println(“t2—————“ + index + “—————>” + tupleFlux.getT2());
+       index.incrementAndGet();
+   });
+   System./out/.println(“————— 分割线2 —————“);
+
+
+   执行结果：
+
+   [a,c]
+   [b,d]
+   ---------- 分割线1 ----------
+   t1--0-->a
+   t2--0-->c
+   t1--1-->b
+   t2--1-->d
+   ---------- 分割线2 ----------
+
+5、take
+    Flux.range(1, 20).take(10).subscribe(System.out::println);
+    Flux.range(1, 20).takeLast(10).subscribe(System.out::println);
+    Flux.range(1, 20).takeWhile(i -> i < 10).subscribe(System.out::println);
+    Flux.range(1, 20).takeUntil(i -> i == 10).subscribe(System.out::println);
+
+6 reduce
+    我的总结，归约：对各个元素执行函数操作。
+    Flux.just(1, 2, 3).reduce((x, y) -> x + y).subscribe(System.out::println);//6
+    我的总结：给定一个初始值，在初始值的基础上进行聚合。
+    Flux.just(1, 2, 3).reduceWith(() -> 4, (x, y) -> x + y).subscribe(System.out::println);//10
+
+7 merge
+    //将多个源publisher中的元素合并到一个新的publisher序列中 重复的元素不会覆盖
+    Flux.merge(Flux.just(0, 1, 2, 3), Flux.just(7, 5, 6), Flux.just(4, 7), Flux.just(4, 7))
+            .toStream()
+            .forEach(System.out::print);
+    System.out.println();
+
+    //将多个源publisher中的元素合并到一个新的publisher序列中 重复的元素不会覆盖
+    //新publisher中元素的顺序为老元素的订阅顺序
+    【【​按订阅顺序】连接（这里的合并仍然可以理解成序列的连接】
+    Flux<Integer> flux = Flux.mergeSequential(Flux.just(9, 8, 7), Flux.just(0, 1, 2, 3),
+            Flux.just(6, 5, 4));
+    System.out.println();
+    flux.sort().subscribe(System.out::print);
+    System.out.println();
+    flux.subscribe(System.out::print);
+
+    01237564747
+    0123456789
+    9870123654
+
+8 flatmap
+    Flux.just(1, 2)
+        .flatMap(x -> Flux.just(x * 10, 100).take(x))
+        .toStream()
+        .forEach(System.out::println);
+
+9 concat
+    我的总结：将concat()【内的】FLux或者Mono元素，放入一个array数组中。
+    切记：和上游的Flux.just(1, 2)没有关系。
+    Flux.just(1, 2)
+        .concat(Flux.just(5, 8))
+        .toStream()
+        .forEach(System.out::println);
+
+    Flux.concat(Mono.just(3), Mono.just(4), Flux.just(1, 2))
+        .subscribe(System.out::println);
+
+10 concatMap
+    我的总结：绑定每一个上游元素，对每一个上游元素执行函数操作，同时将.concat内的元素拼接在一起。
+    //绑定给定输入序列的动态序列，如flatMap，但保留顺序和串联发射，而不是合并(没有交织)
+    Flux.just(5, 10,100)
+        .concatMap(x -> Flux.just(x * 10, 100))
+        .toStream()
+        .forEach(System.out::println);
+执行结果：
+
+    50
+    100
+    100
+    100
+    1000
+    100
+
+11 combineLatest
+    //构建一个flux，其数据是由所有发布者最近发布的值组合而生成的
+    Flux.combineLatest(
+        Arrays::toString,
+        Flux.just(1, 3, 1, 3, 2),
+        Flux.just(1, 2, 3, 4),
+        Mono.just(9),
+        Flux.just(5, 6),
+        Flux.just(7, 8, 9)
+    ).toStream().forEach(System.out::println);
+
+    执行结果：
+
+    [2, 4, 9, 6, 7]
+    [2, 4, 9, 6, 8]
+    [2, 4, 9, 6, 9]
+
+12 综合应用
+private static void compositeOperate() throws InterruptedException {
+    Set<Integer> set = new HashSet<>();
+    set.add(1);
+    set.add(2);
+    set.add(3);
+    Flux.fromIterable(set)
+            .delayElements(Duration.ofMillis(1))
+            .doOnNext(FluxOperators::doSomeThing) //the callback to call on {@link Subscriber#onNext}
+            .publishOn(Schedulers.elastic())
+            .map(d -> d * 2)
+            .take(3)
+            .doOnCancel(() -> System.out.println("操作被取消了"))
+            .doOnComplete(() -> System.out.println("正常结束了"))
+            .onErrorResumeWith(e -> e instanceof RuntimeException, e -> {
+                System.out.println("出现了 RuntimeException");
+                return Flux.error(e);
+            })//某种异常时才处理
+            .doOnError(e -> System.out.println("出现了 Exception"))
+            .doAfterTerminate(() -> System.out.println("不管正常异常，反正是结束了"))
+            .onErrorReturn(444)
+            .doFinally(signalType -> System.out.println("finally--->" + signalType))
+            .subscribe(System.out::println);
+
+    TimeUnit.SECONDS.sleep(5);
+}
+
+
+public static Integer doSomeThing(Integer integer) {
+    //自行调节看效果
+    if (1 != 1)
+        throw new RuntimeException("a RuntimeException error");
+    else if (2 != 2)
+        throw new NullPointerException("a NullPointerException error");
+    return integer + 1;
+}
+
+执行结果：
+
+2
+4
+6
+正常结束了
+finally--->onComplete
+不管正常异常，反正是结束了

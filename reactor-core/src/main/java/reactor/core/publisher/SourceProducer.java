@@ -45,6 +45,8 @@ import reactor.util.annotation.Nullable;
  * @param <O> output operator produced type
  *
  * @author Simon Baslé
+ *
+ * 实现该类的算子，只能放在调用链的开头。
  */
 interface SourceProducer<O> extends Scannable, Publisher<O> {
 

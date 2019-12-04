@@ -28,15 +28,24 @@ import reactor.core.CoreSubscriber;
  * @param <T> the value type
  *
  * @see <a href="https://github.com/reactor/reactive-streams-commons">Reactive-Streams-Commons</a>
+ *
+ * 延迟执行其内的Publisher。
  */
 final class FluxDefer<T> extends Flux<T> implements SourceProducer<T> {
 
+	//记录延迟的publisher
 	final Supplier<? extends Publisher<? extends T>> supplier;
 
 	FluxDefer(Supplier<? extends Publisher<? extends T>> supplier) {
 		this.supplier = Objects.requireNonNull(supplier, "supplier");
 	}
 
+	/**
+	 * 在订阅的时候，真正执行订阅链
+	 * 1、拿出延迟的publisher，
+	 * 2、然后进行subscribe，执行订阅链
+	 *
+	 */
 	@Override
 	@SuppressWarnings("unchecked")
 	public void subscribe(CoreSubscriber<? super T> actual) {
@@ -50,7 +59,7 @@ final class FluxDefer<T> extends Flux<T> implements SourceProducer<T> {
 			Operators.error(actual, Operators.onOperatorError(e, actual.currentContext()));
 			return;
 		}
-
+		//将订阅者
 		from(p).subscribe(actual);
 	}
 

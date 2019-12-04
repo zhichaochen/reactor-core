@@ -30,6 +30,13 @@ import reactor.core.Fuseable;
  * @param <T> the value type
  *
  * @see <a href="https://github.com/reactor/reactive-streams-commons">Reactive-Streams-Commons</a>
+ *
+ * 将多个元素转换成可迭代的流，例如：
+ *
+ * Flux.just(1, 2)
+ *         .concat(Flux.just(5, 8))
+ *         .toStream()
+ *         .forEach(System.out::println);
  */
 final class FluxStream<T> extends Flux<T> implements Fuseable, SourceProducer<T> {
 

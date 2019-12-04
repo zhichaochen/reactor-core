@@ -3,3 +3,9 @@
     1、SpscLinkedArrayQueue的数据结构为数组+链表，其中SpscLinkedArrayQueue不会遍历数组，这个是SpscLinkedArrayQueue涉及的神奇之处。
     2、利用producerIndex和consumerIndex快速索引。
     3、扩容不需要重新rehash或者锁，而是创建新的AtomicReferenceArray作为旧的AtomicReferenceArray的下一个新的节点。
+
+1、该方法实现了一个功能就是X 乘以 2
+
+    public static int ceilingNextPowerOfTwo(final int x) {
+    	return 1 << (32 - Integer.numberOfLeadingZeros(x - 1));
+    }

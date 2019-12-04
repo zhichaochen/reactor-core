@@ -28,6 +28,8 @@ import reactor.util.annotation.Nullable;
  * @param <T> the value type
  *
  * @see <a href="https://github.com/reactor/reactive-streams-commons">Reactive-Streams-Commons</a>
+ *
+ * 执行一个item，Flux没有该方法的。
  */
 final class MonoNext<T> extends MonoFromFluxOperator<T, T> {
 

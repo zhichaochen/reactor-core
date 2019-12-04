@@ -394,6 +394,8 @@ public abstract class Exceptions {
 	 *     <li>{@link VirtualMachineError}</li> <li>{@link ThreadDeath}</li> <li>{@link LinkageError}</li> </ul>
 	 *
 	 * @param t the exception to evaluate
+	 *
+	 * 如果抓到下面这些异常，直接扔出，停止服务。
 	 */
 	public static void throwIfFatal(@Nullable Throwable t) {
 		if (t instanceof BubblingException) {

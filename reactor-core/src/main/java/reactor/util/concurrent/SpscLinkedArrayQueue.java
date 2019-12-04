@@ -56,6 +56,8 @@ final class SpscLinkedArrayQueue<T> extends AbstractQueue<T>
 	static final AtomicLongFieldUpdater<SpscLinkedArrayQueue> PRODUCER_INDEX =
 			AtomicLongFieldUpdater.newUpdater(SpscLinkedArrayQueue.class,
 					"producerIndex");
+
+	//存放数据的数组。
 	AtomicReferenceArray<Object> producerArray;
 
 	/**
@@ -70,8 +72,10 @@ final class SpscLinkedArrayQueue<T> extends AbstractQueue<T>
 
 	static final Object NEXT = new Object();
 
-	SpscLinkedArrayQueue(int linkSize) {
+	SpscLinkedArrayQueue(int linkSize) {//比如256。
+		//256 * 2
 		int c = Queues.ceilingNextPowerOfTwo(Math.max(8, linkSize));
+		//设置AtomicReferenceArray的初始容量为256 * 2
 		this.producerArray = this.consumerArray = new AtomicReferenceArray<>(c + 1);
 		this.mask = c - 1;
 	}
@@ -82,13 +86,16 @@ final class SpscLinkedArrayQueue<T> extends AbstractQueue<T>
 
 		long pi = producerIndex;
 		AtomicReferenceArray<Object> a = producerArray;
+		//mask: 表示初始容量-1，用来和producerIndex且的，以便算出偏移量
 		int m = mask;
-
+		//计算偏移量，offset表示当前元素该放入的位置。
 		int offset = (int) (pi + 1) & m;
 
+		//如果不为空，说明buffer满了，要扩容
 		if (a.get(offset) != null) {
 			offset = (int) pi & m;
 
+			//新建AtomicReferenceArray
 			AtomicReferenceArray<Object> b = new AtomicReferenceArray<>(m + 2);
 			producerArray = b;
 			b.lazySet(offset, e);
@@ -162,9 +169,12 @@ final class SpscLinkedArrayQueue<T> extends AbstractQueue<T>
 		if (o == null) {
 			return null;
 		}
+
+		//如果是NEXT指针，则取链表的下一个节点的AtomicReferenceArray
 		if (o == NEXT) {
 			AtomicReferenceArray<Object> b = (AtomicReferenceArray<Object>) a.get(m + 1);
 			a.lazySet(m + 1, null);
+			//从下一个节点的AtomicReferenceArray获取元素
 			o = b.get(offset);
 			a = b;
 			consumerArray = b;

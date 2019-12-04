@@ -93,10 +93,10 @@ final class FluxPublishOn<T> extends InternalFluxOperator<T, T> implements Fusea
 	@Override
 	@SuppressWarnings("unchecked")
 	public CoreSubscriber<? super T> subscribeOrReturn(CoreSubscriber<? super T> actual) {
-		//
 		Worker worker;
 
 		try {
+			//创建ExecutorServiceWorker
 			worker = Objects.requireNonNull(scheduler.createWorker(),
 					"The scheduler returned a null worker");
 		}
@@ -143,11 +143,11 @@ final class FluxPublishOn<T> extends InternalFluxOperator<T, T> implements Fusea
 		final int prefetch;
 
 		final int limit;
-
+		//队列提供者
 		final Supplier<? extends Queue<T>> queueSupplier;
 
 		Subscription s;
-
+		//队列
 		Queue<T> queue;
 
 		volatile boolean cancelled;
@@ -156,21 +156,30 @@ final class FluxPublishOn<T> extends InternalFluxOperator<T, T> implements Fusea
 
 		Throwable error;
 
-		//流水线
+		/**
+		 * wip(work in progress):
+		 * 特别注意：WIP记录的是【正在工作的线程数量】
+		 */
 		volatile int wip;
 		@SuppressWarnings("rawtypes")
 		static final AtomicIntegerFieldUpdater<PublishOnSubscriber> WIP =
 				AtomicIntegerFieldUpdater.newUpdater(PublishOnSubscriber.class, "wip");
 
-		//下游算子请求的元素的个数
+		/**
+		 * 表示请求的元素的个数
+		 */
 		volatile long requested;
 		@SuppressWarnings("rawtypes")
 		static final AtomicLongFieldUpdater<PublishOnSubscriber> REQUESTED =
 				AtomicLongFieldUpdater.newUpdater(PublishOnSubscriber.class, "requested");
 
+		//来源模式：同步还是异步。
 		int sourceMode;
 
-		//上游算子生产的元素的个数
+		/**
+		 * 记录生产了多少元素，生产一个，记录一个。
+		 * 调用onNext之后+1，表示元素生产完成
+		 */
 		long produced;
 
 		boolean outputFused;
@@ -204,6 +213,7 @@ final class FluxPublishOn<T> extends InternalFluxOperator<T, T> implements Fusea
 					@SuppressWarnings("unchecked") QueueSubscription<T> f =
 							(QueueSubscription<T>) s;
 
+					//判断上下游生产者是否在同一个线程中。
 					int m = f.requestFusion(Fuseable.ANY | Fuseable.THREAD_BARRIER);
 
 					if (m == Fuseable.SYNC) {
@@ -234,6 +244,10 @@ final class FluxPublishOn<T> extends InternalFluxOperator<T, T> implements Fusea
 			}
 		}
 
+		/**
+		 * 同步的话，
+		 * @param t
+		 */
 		@Override
 		public void onNext(T t) {
 			//如果是异步，直接调用trySchedule
@@ -296,14 +310,19 @@ final class FluxPublishOn<T> extends InternalFluxOperator<T, T> implements Fusea
 			}
 		}
 
+		/**
+		 * 取消
+		 */
 		@Override
 		public void cancel() {
 			if (cancelled) {
 				return;
 			}
-
+			//设置为取消
 			cancelled = true;
+			//关闭这次订阅事件
 			s.cancel();
+			//关闭多个线程
 			worker.dispose();
 
 			if (WIP.getAndIncrement(this) == 0) {
@@ -325,10 +344,18 @@ final class FluxPublishOn<T> extends InternalFluxOperator<T, T> implements Fusea
 				@Nullable Subscription subscription,
 				@Nullable Throwable suppressed,
 				@Nullable Object dataSignal) {
+
+			/**
+			 * WIP记录的活跃的线程数
+			 * 能获取到，说明有正在工作的线程，无需创建线程。
+			 */
 			if (WIP.getAndIncrement(this) != 0) {
 				return;
 			}
 
+			/**
+			 * 没有正在工作的线程，创建新的线程。
+			 */
 			try {
 				worker.schedule(this);
 			}
@@ -340,11 +367,10 @@ final class FluxPublishOn<T> extends InternalFluxOperator<T, T> implements Fusea
 		}
 
 		/**
-		 * 同步运行
-		 *
-		 *
+		 * 同步运行（表示同一个线程中。）
 		 */
 		void runSync() {
+			//用于表示某个
 			int missed = 1;
 
 			final Subscriber<? super T> a = actual;
@@ -376,6 +402,8 @@ final class FluxPublishOn<T> extends InternalFluxOperator<T, T> implements Fusea
 						Operators.onDiscardQueueWithClear(q, actual.currentContext(), null);
 						return;
 					}
+
+					//元素没有了，表示已经完成
 					if (v == null) {
 						doComplete(a);
 						return;
@@ -396,7 +424,17 @@ final class FluxPublishOn<T> extends InternalFluxOperator<T, T> implements Fusea
 					return;
 				}
 
+				/**
+				 * 能走到这里，说明queue不为空。
+				 * 但是呢，这个线程结束了
+				 */
 				int w = wip;
+
+				/**
+				 * 说明一个线程正在工作,同步的话也就一个线程
+				 * 将工作中的线程 -1 ，表示没有线程在工作。
+				 * 因为对于同步来说，此时工作已经完成。
+				 */
 				if (missed == w) {
 					produced = e;
 					missed = WIP.addAndGet(this, -missed);
@@ -451,6 +489,7 @@ final class FluxPublishOn<T> extends InternalFluxOperator<T, T> implements Fusea
 					a.onNext(v);
 
 					e++;
+
 					if (e == limit) {
 						if (r != Long.MAX_VALUE) {
 							r = REQUESTED.addAndGet(this, -e);
@@ -478,6 +517,9 @@ final class FluxPublishOn<T> extends InternalFluxOperator<T, T> implements Fusea
 			}
 		}
 
+		/**
+		 * 运行回流
+		 */
 		void runBackfused() {
 			int missed = 1;
 
@@ -526,7 +568,19 @@ final class FluxPublishOn<T> extends InternalFluxOperator<T, T> implements Fusea
 		}
 
 		/**
-		 * 该方法为publishOn()开启的多线程执行的任务。
+		 * 线程任务
+		 *
+		 * 同步：
+		 * 异步：
+		 * 回流：
+		 *
+		 * 同步和异步处理的主要区别
+		 * 		同步：调用下一个算子的onNext()，然后lambdaSubscriber进行request。
+		 * 		异步：调用onNext()之后，【直接request上游数据】。
+		 *
+		 * 这样也可以理解的：
+		 * 		同步嘛，你必须一步一步的走。
+		 * 		异步的话，一个执行完之后赶紧去请求。否则其他的线程消费不到数据咋办。
 		 */
 		@Override
 		public void run() {

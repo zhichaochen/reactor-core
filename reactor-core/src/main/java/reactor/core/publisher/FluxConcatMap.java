@@ -42,11 +42,25 @@ import static reactor.core.Exceptions.TERMINATED;
  * @param <R> the output value type
  *
  * @see <a href="https://github.com/reactor/reactive-streams-commons">Reactive-Streams-Commons</a>
+ *
+ * 映射每个上游的值到Publisher，并将它们连接成一个items序列。
+ *
+ * .concat ：和上游的元素没有关系。
+ * .concatmap: 和上游元素有关系
+ *
+ * 例如：
+ * Flux.just(5, 10,100)
+ *         .concatMap(x -> Flux.just(x * 10, 100))
+ *         .toStream()
+ *         .forEach(System.out::println);
+ * 结果：50，100，100，100，1000，100
  */
 final class FluxConcatMap<T, R> extends InternalFluxOperator<T, R> {
 
+	//操作函数
 	final Function<? super T, ? extends Publisher<? extends R>> mapper;
 
+	//队列
 	final Supplier<? extends Queue<T>> queueSupplier;
 
 	final int prefetch;
@@ -55,16 +69,20 @@ final class FluxConcatMap<T, R> extends InternalFluxOperator<T, R> {
 
 	/**
 	 * Indicates when an error from the main source should be reported.
+	 * 什么时候报告错误
 	 */
 	enum ErrorMode {
 		/**
 		 * Report the error immediately, cancelling the active inner source.
+		 * 立即报告错误，并删除活跃的内部source
 		 */
 		IMMEDIATE, /**
 		 * Report error after an inner source terminated.
+		 * 一个内部的source终止后，报告错误。
 		 */
 		BOUNDARY, /**
 		 * Report the error after all sources terminated.
+		 * 所有的sources终止后，报告错误
 		 */
 		END
 	}

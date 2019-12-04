@@ -33,6 +33,10 @@ import reactor.util.annotation.Nullable;
  * @param <R> the accumulated result type
  *
  * @see <a href="https://github.com/reactor/reactive-streams-commons">Reactive-Streams-Commons</a>
+ * 给定一个初始值，在初始值的基础上进行聚合。
+ * 例如：
+ * Flux.just(1, 2, 3).reduceWith(() -> 4, (x, y) -> x + y).subscribe(System.out::println);
+ * 结果：10
  */
 final class MonoReduceSeed<T, R> extends MonoFromFluxOperator<T, R>
 		implements Fuseable {

@@ -23,7 +23,9 @@ import reactor.core.Scannable;
 import reactor.util.annotation.Nullable;
 
 /**
- * 该抽象类表示：该算子可以在其他的算子中间。
+ * 内部的Flux算子，实现该类的算子，需要放在调用类的中间。
+ * 表示该算子，只能放在调用类的中间。
+ *
  * 比如：FluxRange ；就不可以在中间。
  *
  * @param <I>

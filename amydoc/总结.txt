@@ -1,3 +1,13 @@
+总的执行步骤
+    1、onSubscribe：从上到下
+    2、subscribe
+    3、request
+    4、onNext
+
+
+官方参考文档地址：http://projectreactor.io/docs/core/release/reference/
+中文翻译文档地址：http://htmlpreview.github.io/?https://github.com/get-set/reactor-core/blob/master-zh/src/docs/index.html
+中文翻译源码地址：https://github.com/get-set/reactor-core/tree/master-zh/src/docs/asciidoc
 0、操作
     Flux.range(1, 10)
 				.map(x -> x + 1)
@@ -13,6 +23,18 @@
     subscribeOn：异步去request请求上游数据
 
     多个线程如何交互，如何一起终止，参见WorkerTask类。
+
+    Subscription：的生命周期是订阅者对发布者的一次订阅。订阅之后就会设置为已删除状态。
+
+    1、调用链的开头，中间算子
+        SourceProducer：接口表示，只能放在调用链的开头，表示开头的算子。
+        InternalFluxOperator、InnerOperator：表示，只能放在调用链的中间。表示中间的算子。
+
+        且：在头的算子才会调用subscribe方法。然后执行onSubscribe的逻辑。
+
+        实现原理：
+            能打头的算子在Flux中提供了static方法。可以直接通过Flux.XXX进行调用。
+            不能打头的提供实例方法，只能通过，new对象进行调用。
 
 1、多个算子如何实现上游可以调用下游，同时，下游也调用上游的？
     参见Flux#subscribe(Subscriber<? super T> actual) 方法。
@@ -85,4 +107,74 @@
         数据先缓存在FluxPublishOn的queue中，然后再开启多个线程去消费queue中的数据。
 
 6、工作窃取
-    当任务来了，时候空闲的线程是否是工作窃取呢？
+    上游的生产者，将元素生产到 queue中，下游的线程去消费。
+    那个线程完成就继续去queue中进行消费，这本身就是工作窃取的实现方式。
+    参考FluxPublishOn
+
+7、怎么理解ParallelScheduler
+    1、在项目启动的时候，初始化线程池。
+        每一次调用接口发送数据，都可以去请求开启线程。
+
+8、Hot vs Cold
+    冷发布者：在【订阅的时候才会发生】， 在【订阅之前什么都不会发生】。
+    热发布者：
+
+    hot and cold的实现原理。
+
+9、关于日志的处理
+    1、开启调试模式（调试模式是全局的）
+        Hooks.onOperatorDebug();
+        调试模式是全局性的，会影响到程序中每一个组装到一个 Flux 或 Mono 的操作符。
+
+    2、checkpoint：在出错的时候，打印错误堆栈信息。
+
+        相比全局调试模式，它只打印加在链上。
+        checkpoint()：
+            默认打印stack trace信息。
+        checkpoint(String)：
+            默认省略 stack trace信息，只打印错误日志，可以有更低的成本。
+        checkpoint("description", true)
+            可以自己控制是否打印stack trace信息。
+
+        参数1：定位描述符，可以帮助定位到组装点。一个日志的识别信息。
+        参数2：控制是否打印堆栈信息。
+
+        例如：
+
+    3、log：输出日志信息（注意：需要配置backlog）
+        它会读（只读，peek）每一个 在【其上游的】 Flux 或 Mono 【事件】
+        （包括 onNext、onError、 onComplete， 以及 订阅、 取消、和 请求）。
+
+        log()
+        log(String)
+
+        例如：
+        Flux<Integer> flux = Flux.range(1, 10)
+                                 .log()
+                                 .take(3);
+
+        其中：
+            reactor.Flux.Range.1 是自动生成的日志 类别（category），以防你在操作链中多次使用 同一个操作符。
+            通过它你可以分辨出来是哪个操作符的事件（这里是 range 的）。
+
+            你可以调用 log(String) 方法用自定义的类别替换这个标识符。
+            在几个用于分隔的字符之后， 打印出了实际的事件
+
+        输出如下（通过 logger 的 console appender）：
+
+        10:45:20.200 [main] INFO  reactor.Flux.Range.1 - | onSubscribe([Synchronous Fuseable] FluxRange.RangeSubscription)
+        10:45:20.205 [main] INFO  reactor.Flux.Range.1 - | request(unbounded)
+        10:45:20.205 [main] INFO  reactor.Flux.Range.1 - | onNext(1)
+        10:45:20.205 [main] INFO  reactor.Flux.Range.1 - | onNext(2)
+        10:45:20.205 [main] INFO  reactor.Flux.Range.1 - | onNext(3)
+        10:45:20.205 [main] INFO  reactor.Flux.Range.1 - | cancel()
+
+9.1、checkpoint实现原理
+9.2、log实现原理？
+
+
+
+
+
+
+

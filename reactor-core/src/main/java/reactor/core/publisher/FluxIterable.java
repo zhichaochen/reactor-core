@@ -33,6 +33,11 @@ import reactor.util.function.Tuple2;
  * @param <T> the value type
  *
  * @see <a href="https://github.com/reactor/reactive-streams-commons">Reactive-Streams-Commons</a>
+ *
+ * Emits : 发射
+ * 发射一个可迭代的源的内容
+ *
+ * 可迭代的Flux
  */
 final class FluxIterable<T> extends Flux<T> implements Fuseable, SourceProducer<T> {
 

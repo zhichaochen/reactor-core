@@ -26,10 +26,12 @@ import reactor.core.Scannable;
 /**
  * @author Stephane Maldini
  *
- * 管理线程池中的多个线程。
+ * 管理线程池中的多个线程。该对象其实就相当于个线程池了。
  *
  * 相比XXXSchedule来说：重点在于对线程池中的每个线程的管理，比如tasks.dispose。
  * XXXSchedule：重点在线程池的管理。
+ *
+ *
  */
 final class ExecutorServiceWorker implements Scheduler.Worker, Disposable, Scannable {
 

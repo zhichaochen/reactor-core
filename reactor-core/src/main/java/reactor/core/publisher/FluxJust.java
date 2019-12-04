@@ -106,6 +106,11 @@ final class FluxJust<T> extends Flux<T>
 			terminado = true;
 		}
 
+		/**
+		 * 第一个算子嘛，故而只能是SYNC
+		 * @param requestedMode the mode requested by the intermediate operator
+		 * @return
+		 */
 		@Override
 		public int requestFusion(int requestedMode) {
 			if ((requestedMode & Fuseable.SYNC) != 0) {
