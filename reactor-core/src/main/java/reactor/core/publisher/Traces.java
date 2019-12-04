@@ -46,6 +46,8 @@ import sun.misc.SharedSecrets;
  *
  * @author Simon Baslé
  * @author Sergei Egorov
+ *
+ * 处理堆栈跟踪和显示程序集跟踪的实用程序。
  */
 final class Traces {
 
@@ -63,17 +65,27 @@ final class Traces {
 	 * Transform the current stack trace into a {@link String} representation,
 	 * each element being prepended with a tabulation and appended with a
 	 * newline.
+	 *
+	 * 将当前的堆栈信息转化成String的表现形式
+	 * 每个元素预拼接一个tab,并拼接一个换行符。
 	 */
 	static Supplier<Supplier<String>> callSiteSupplierFactory;
 
+	/**
+	 * JDK9+：$StackWalkerCallSiteSupplierFactory
+	 */
 	static {
 		String[] strategyClasses = {
 				Traces.class.getName() + "$StackWalkerCallSiteSupplierFactory",
 				Traces.class.getName() + "$SharedSecretsCallSiteSupplierFactory",
 				Traces.class.getName() + "$ExceptionCallSiteSupplierFactory",
 		};
-		// find one available call-site supplier w.r.t. the jdk version to provide
-		// linkage-compatibility between jdk 8 and 9+
+		/**
+		 * find one available call-site supplier w.r.t. the jdk version to provide
+		 * 找到一个可用的call-site supplier，当前jdk版本提供的。
+		 * linkage-compatibility between jdk 8 and 9+
+		 * 处理jdk 8 and 9+之间的兼容性。
+ 		 */
 		callSiteSupplierFactory = Stream
 				.of(strategyClasses)
 				.flatMap(className -> {
@@ -84,6 +96,10 @@ final class Traces {
 						                                                      .newInstance();
 						return Stream.of(function);
 					}
+					/**
+					 * 显式捕获LinkageError
+					 * 以支持静态代码分析工具检测查找jdk环境的尝试
+					 */
 					// explicitly catch LinkageError to support static code analysis
 					// tools detect the attempt at finding out jdk environment
 					catch (LinkageError e) {
@@ -100,6 +116,8 @@ final class Traces {
 	/**
 	 * Utility class for the call-site extracting on Java 9+.
 	 *
+	 * Utility class ：工具类
+	 * Java 9+ 的 call-site 的工具类
 	 */
 	@SuppressWarnings("unused")
 	static final class StackWalkerCallSiteSupplierFactory implements Supplier<Supplier<String>> {
@@ -320,6 +338,9 @@ final class Traces {
 	 * @param source the sanitized assembly stacktrace in String format.
 	 * @return a {@link String} representing operator and operator assembly site extracted
 	 * from the assembly stack trace.
+	 *
+	 * 提取算子的组装信息，得到的结果：
+	 *
 	 */
 	static String extractOperatorAssemblyInformation(String source) {
 		String[] parts = extractOperatorAssemblyInformationParts(source);
@@ -356,6 +377,8 @@ final class Traces {
 	 * @param source the sanitized assembly stacktrace in String format.
 	 * @return a {@link String} representing operator and operator assembly site extracted
 	 * from the assembly stack trace.
+	 *
+	 * 提取算子组装信息，多个部分。
 	 */
 	static String[] extractOperatorAssemblyInformationParts(String source) {
 		String[] uncleanTraces = source.split("\n");

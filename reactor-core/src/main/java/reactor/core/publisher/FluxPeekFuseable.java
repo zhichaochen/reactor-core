@@ -39,6 +39,13 @@ import reactor.util.context.Context;
  * @param <T> the value type
  *
  * @see <a href="https://github.com/reactor/reactive-streams-commons">Reactive-Streams-Commons</a>
+ *
+ * 查看可融合的算，本质来说，是打印log
+ *
+ * 例如：FluxLogFuseable中会创建 PeekFuseableSubscriber
+ * 通过该订阅者，打印日志。
+ * SignalPeek：SignalLogger。
+ *
  */
 final class FluxPeekFuseable<T> extends InternalFluxOperator<T, T>
 		implements Fuseable, SignalPeek<T> {
@@ -85,17 +92,24 @@ final class FluxPeekFuseable<T> extends InternalFluxOperator<T, T>
 		return new PeekFuseableSubscriber<>(actual, this);
 	}
 
+	/**
+	 * 这是一个能查看算子的生命周期和调用信息的订阅者。
+	 * 比如：在cancel：final Runnable cancelHook = parent.onCancelCall();
+	 * 本质上是调用SignalLogger#onCancelCall打印日志。
+	 * @param <T>
+	 */
 	static final class PeekFuseableSubscriber<T>
 			implements InnerOperator<T, T>, QueueSubscription<T> {
 
+		//上游算子的订阅者
 		final CoreSubscriber<? super T> actual;
-
+		//SignalLogger
 		final SignalPeek<T> parent;
-
+		//队列
 		QueueSubscription<T> s;
 
 		int sourceMode;
-
+		//是否完成
 		volatile boolean done;
 
 		@Override

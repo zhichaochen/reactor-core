@@ -338,8 +338,9 @@ final class LambdaSubscriber<T>
 		//Flux.range(1,10).checkpoint("aaa");
 
 		Flux<Integer> flux = Flux.range(1, 10)
-				.log()
+				.log("")
 				.take(3);
+		flux.subscribe(System.out::println);
 	}
 
 	public static void source1 (){

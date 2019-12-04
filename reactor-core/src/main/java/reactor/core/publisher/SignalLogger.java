@@ -38,6 +38,12 @@ import reactor.util.context.Context;
  * WARNING and SEVERE are taken into account.
  *
  * @author Stephane Maldini
+ *
+ * 日志拦截器
+ *
+ * 拦截所有reactive调用，并跟踪他们（一个日志拦截器）
+ * log 等级可以使用level进行调整，单只能finest、fine、info、warning、severe
+ * severe ：严重的。
  */
 final class SignalLogger<IN> implements SignalPeek<IN> {
 
@@ -55,13 +61,16 @@ final class SignalLogger<IN> implements SignalPeek<IN> {
 
 	final static AtomicLong IDS = new AtomicLong(1);
 
+	//上一个发布者，也是上一个算子
 	final CorePublisher<IN> source;
 
 	final Logger  log;
 	final boolean fuseable;
 	final int     options;
 	final Level   level;
+	//第几行
 	final String  operatorLine;
+	//记录第几个元素，比如reactor.Flux.Range.1
 	final long    id;
 
 	static final String LOG_TEMPLATE          = "{}({})";
@@ -83,6 +92,7 @@ final class SignalLogger<IN> implements SignalPeek<IN> {
 			@Nullable SignalType... options) {
 
 		this.source = Objects.requireNonNull(source, "source");
+		//记录第几个算子，例如默认：reactor.Flux.Range.1
 		this.id = IDS.getAndIncrement();
 		this.fuseable = source instanceof Fuseable;
 
@@ -96,6 +106,13 @@ final class SignalLogger<IN> implements SignalPeek<IN> {
 		boolean generated =
 				category == null || category.isEmpty() || category.endsWith(".");
 
+		/**
+		 * 拼接的category
+		 *
+		 * 例如：
+		 * Flux.range(1, 10).log().take(3);
+		 * 拼接的category = reactor.Flux.Range.1
+		 */
 		category = generated && category == null ? "reactor." : category;
 		if (generated) {
 			if (source instanceof Mono) {
@@ -116,6 +133,9 @@ final class SignalLogger<IN> implements SignalPeek<IN> {
 			category += "." + id;
 		}
 
+		/**
+		 * 相当于Logger logger = LoggerFactory.getLog();
+		 */
 		this.log = loggerSupplier.apply(category);
 
 		this.level = level;
@@ -245,6 +265,10 @@ final class SignalLogger<IN> implements SignalPeek<IN> {
 		return asString.toString();
 	}
 
+	/**
+	 * 在订阅的时候调用该日志。
+	 * @return
+	 */
 	@Override
 	@Nullable
 	public Consumer<? super Subscription> onSubscribeCall() {

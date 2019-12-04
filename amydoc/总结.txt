@@ -142,6 +142,8 @@
         例如：
 
     3、log：输出日志信息（注意：需要配置backlog）
+        我的总结：会记录上游算子，对下游的操作日志。
+
         它会读（只读，peek）每一个 在【其上游的】 Flux 或 Mono 【事件】
         （包括 onNext、onError、 onComplete， 以及 订阅、 取消、和 请求）。
 
@@ -171,6 +173,12 @@
 
 9.1、checkpoint实现原理
 9.2、log实现原理？
+    1、创建SignalLogger对象，用于记录日志
+    2、创建FluxLogFuseable的，在其中记录日志对象
+    3、在subscribeOrReturn时候，创建PeekFuseableSubscriber订阅者，记录SignalLogger对象
+        在调用各个算子声明周期的时候，通过SignalLogger对各个生命周期的逻辑，执行打印日志。
+
+
 
 
 

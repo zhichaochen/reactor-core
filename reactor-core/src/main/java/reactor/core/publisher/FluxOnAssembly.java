@@ -173,16 +173,21 @@ final class FluxOnAssembly<T> extends InternalFluxOperator<T, T> implements Fuse
 		}
 	}
 
+	/**
+	 * 打印轻量级快照 ，当checkpoint = false的时候。
+	 *
+	 * 默认缓存为： "checkpoint(\"" + description + "\")";
+	 */
 	static final class AssemblyLightSnapshot extends AssemblySnapshot {
-
-		AssemblyLightSnapshot(@Nullable String description) {
-			super(true, description, null);
-			cached = "checkpoint(\"" + description + "\")";
-		}
 
 		@Override
 		public boolean isLight() {
 			return true;
+		}
+
+		AssemblyLightSnapshot(@Nullable String description) {
+			super(true, description, null);
+			cached = "checkpoint(\"" + description + "\")";
 		}
 
 		@Override

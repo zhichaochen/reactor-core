@@ -30,6 +30,10 @@ import reactor.util.context.Context;
  * The callbacks are all optional.
  *
  * @param <T> the value type of the sequence
+ *
+ * 窥探声明周期和序列信号。
+ * 本质来说：通过log 记录 如下信息。
+ * 	 onNext、onError、 onComplete， 以及 订阅、 取消、和 请求）
  */
 interface SignalPeek<T> extends Scannable {
 

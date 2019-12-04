@@ -38,6 +38,7 @@ import reactor.util.annotation.Nullable;
  */
 public abstract class FluxOperator<I, O> extends Flux<O> implements Scannable {
 
+	//记录上一个发布者。
 	protected final Flux<? extends I> source;
 
 	/**
