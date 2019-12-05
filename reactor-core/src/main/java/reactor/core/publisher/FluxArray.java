@@ -69,7 +69,7 @@ final class FluxArray<T> extends Flux<T> implements Fuseable, SourceProducer<T> 
 
 	static final class ArraySubscription<T>
 			implements InnerProducer<T>, SynchronousSubscription<T> {
-
+		//当前订阅对象的真实订阅者
 		final CoreSubscriber<? super T> actual;
 
 		final T[] array;

@@ -47,6 +47,12 @@ import reactor.util.function.Tuples;
  *
  * @param <T> the value type passing through
  * @see <a href="https://github.com/reactor/reactive-streams-commons">https://github.com/reactor/reactive-streams-commons</a>
+ *
+ * 创建此发布服务器时，捕获当前的stacktrace，
+ * 并使其在inner Subscriber 上 可用/可见，以便进行调试。
+ *
+ * 使用
+ * 		Flux.checkpoint();
  */
 final class FluxOnAssembly<T> extends InternalFluxOperator<T, T> implements Fuseable,
                                                                     AssemblyOp {
@@ -202,6 +208,9 @@ final class FluxOnAssembly<T> extends InternalFluxOperator<T, T> implements Fuse
 
 	}
 
+	/**
+	 * 方法返回快照
+	 */
 	static final class MethodReturnSnapshot extends AssemblySnapshot {
 
 		MethodReturnSnapshot(String method) {
@@ -228,6 +237,8 @@ final class FluxOnAssembly<T> extends InternalFluxOperator<T, T> implements Fuse
 	 * Be sure to update said method in case of a refactoring.
 	 *
 	 * @see Exceptions#isTraceback(Throwable)
+	 *
+	 * 装配堆栈信息的Holder。
 	 */
 	static final class OnAssemblyException extends RuntimeException {
 
@@ -250,7 +261,9 @@ final class FluxOnAssembly<T> extends InternalFluxOperator<T, T> implements Fuse
 				add(parent, snapshot.lightPrefix(), snapshot.getDescription());
 			}
 			else {
+				//装配信息
 				String assemblyInformation = snapshot.toAssemblyInformation();
+				//
 				String[] parts = Traces.extractOperatorAssemblyInformationParts(assemblyInformation);
 				if (parts.length > 0) {
 					String prefix = parts.length > 1 ? parts[0] : "";
@@ -294,6 +307,12 @@ final class FluxOnAssembly<T> extends InternalFluxOperator<T, T> implements Fuse
 			}
 		}
 
+		/**
+		 * 打印如下信息：
+		 * Error has been observed at the following site(s):
+		 * 		|_ Flux.checkpoint ⇢ at com.wangweimin.reactor.Main.testCheckpoint(Main.java:19)
+		 * Stack trace:
+		 */
 		@Override
 		public String getMessage() {
 			//skip the "error has been observed" traceback if mapped traceback is empty
@@ -343,6 +362,12 @@ final class FluxOnAssembly<T> extends InternalFluxOperator<T, T> implements Fuse
 		             .orElse(parent.hashCode());
 	}
 
+	/**
+	 * 打印堆栈信息的订阅者。
+	 * 重点在onError方法中。
+	 *
+	 * @param <T>
+	 */
 	static class OnAssemblySubscriber<T>
 			implements InnerOperator<T, T>, QueueSubscription<T> {
 
@@ -413,9 +438,19 @@ final class FluxOnAssembly<T> extends InternalFluxOperator<T, T> implements Fuse
 			return Fuseable.NONE;
 		}
 
+		/**
+		 * 该订阅者的核心方法。
+		 * 当发生错误的时候，封装错误堆栈信息。传递到最后的一个订阅者LambdaSubscriber中。
+		 * 在 LambdaSubscriber onError方法中输出日志。
+		 *
+		 * @param t
+		 * @return
+		 */
 		final Throwable fail(Throwable t) {
+			//判断是否打印轻量级日志
 			boolean lightCheckpoint = snapshotStack.isLight();
 
+			//判断OnAssemblyException是否被抑制
 			OnAssemblyException onAssemblyException = null;
 			for (Throwable e : t.getSuppressed()) {
 				if (e instanceof OnAssemblyException) {
@@ -423,19 +458,30 @@ final class FluxOnAssembly<T> extends InternalFluxOperator<T, T> implements Fuse
 					break;
 				}
 			}
-
+			/**
+			 * 如果被抑制：直接获取到
+			 *
+			 */
 			if (onAssemblyException == null) {
 				if (lightCheckpoint) {
 					onAssemblyException = new OnAssemblyException("");
 				}
 				else {
+					/**
+					 * 打印如下信息：
+					 * Assembly trace from producer [reactor.core.publisher.FluxMapFuseable] :
+					 * 		reactor.core.publisher.Flux.checkpoint(Flux.java:3180)
+					 * 		com.wangweimin.reactor.Main.testCheckpoint(Main.java:19)
+					 */
 					StringBuilder sb = new StringBuilder();
 					fillStacktraceHeader(sb, parent.getClass(), snapshotStack.getDescription());
 					sb.append(snapshotStack.toAssemblyInformation().replaceFirst("\\n$", ""));
 					String description = sb.toString();
 					onAssemblyException = new OnAssemblyException(description);
 				}
-
+				/**
+				 *  打印原本的堆栈信息。
+				 */
 				t = Exceptions.addSuppressed(t, onAssemblyException);
 				final StackTraceElement[] stackTrace = t.getStackTrace();
 				if (stackTrace.length > 0) {

@@ -85,9 +85,15 @@ final class Traces {
 		 * 找到一个可用的call-site supplier，当前jdk版本提供的。
 		 * linkage-compatibility between jdk 8 and 9+
 		 * 处理jdk 8 and 9+之间的兼容性。
+		 *
+		 * 经此方法之后，
  		 */
 		callSiteSupplierFactory = Stream
 				.of(strategyClasses)
+				/**
+				 * 这种方式为啥能获取到正确的class呢？
+				 * 因为flatMap可以去掉空的值，所以能拿到
+				 */
 				.flatMap(className -> {
 					try {
 						Class<?> clazz = Class.forName(className);
@@ -199,6 +205,9 @@ final class Traces {
 		}
 	}
 
+	/**
+	 * 目前调用的是该工厂方法。
+	 */
 	@SuppressWarnings("unused")
 	static class SharedSecretsCallSiteSupplierFactory implements Supplier<Supplier<String>> {
 
@@ -209,21 +218,45 @@ final class Traces {
 
 		static class TracingException extends Throwable implements Supplier<String> {
 
+			/**
+			 * 可以获得所有JVM栈帧中的实例对象的类名
+			 * 也就是说我们使用JavaLangAccess和SharedSecrets可以【获取栈帧中的所有实例对象的类名称]，
+			 * 接下来我们需要剔除掉不可能是调用类的名字。
+			 */
 			static final JavaLangAccess javaLangAccess = SharedSecrets.getJavaLangAccess();
 
 			@Override
 			public String get() {
+				//获取栈的深度
 				int stackTraceDepth = javaLangAccess.getStackTraceDepth(this);
 
 				StackTraceElement previousElement = null;
-				// Skip get()
+				/**
+				 * Skip get()
+				 *
+				 * 为啥是从2开始呢？？？
+				 * 		跳过：TracingException#get
+				 * 		跳过：SharedSecretsCallSiteSupplierFactory#get
+ 				 */
 				for (int i = 2; i < stackTraceDepth; i++) {
+					//获取栈内的元素
 					StackTraceElement e = javaLangAccess.getStackTraceElement(this, i);
 
+					//获取全类名
 					String className = e.getClassName();
+					/**
+					 * 判断是否是用户自己的堆栈信息。
+					 * 		如果不是：继续
+					 * 		如果是：则打印。
+					 */
 					if (isUserCode(className)) {
 						StringBuilder sb = new StringBuilder();
 
+						/**
+						 * e.toString()的内容如下：
+						 * reactor.core.publisher.Flux.checkpoint(Flux.java:3180)
+						 * com.wangweimin.reactor.Main.testCheckpoint(Main.java:19)
+						 */
 						if (previousElement != null) {
 							sb.append("\t").append(previousElement.toString()).append("\n");
 						}
@@ -352,6 +385,10 @@ final class Traces {
 		}
 	}
 
+	/**
+	 *  判断是否是用户自己的堆栈信息。而不是reactor框架本身的。
+	 *  如果包含reactor.core.publisher：返回false，因为不是用户的堆栈信息。
+	 */
 	static boolean isUserCode(String line) {
 		return !line.startsWith("reactor.core.publisher") || line.contains("Test");
 	}
@@ -378,7 +415,7 @@ final class Traces {
 	 * @return a {@link String} representing operator and operator assembly site extracted
 	 * from the assembly stack trace.
 	 *
-	 * 提取算子组装信息，多个部分。
+	 * 将错误信息解析之后，封装成数组。
 	 */
 	static String[] extractOperatorAssemblyInformationParts(String source) {
 		String[] uncleanTraces = source.split("\n");

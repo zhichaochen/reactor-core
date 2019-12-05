@@ -191,9 +191,39 @@
     SheduleExecutorService 是JDK 1.5出来的，比以前的Timer性能好
 
 
+5、获取堆栈信息。
+    参考：Traces#SharedSecretsCallSiteSupplierFactory#TracingException#get
+    参考：https://blog.csdn.net/yums467/article/details/53005292
+    1、SharedSecrets
+    2、JavaLangAccess
+    通过如上两个类，可以获取调用栈的所有的堆栈信息。
+    可以获取栈帧中的所有实例对象的类名称。
+    我的总结：主要可以获取StackTraceElement对象，这样就获取了栈信息。
+
+    SharedSecrets和JavaLangAccess，通过这两个类来获取Java栈帧中存储的类信息，然后进行挑选，从而找出调用的类。
 
 
+    剔除不可能的调用类
+        该方法可以获取整个调用栈。
+        但是有些的调用栈是不需要输出来的
+        比如:框架自身的调用栈。
+        还要排除在获取栈帧过程中和日志框架使用过程中的额外引入的类，
+        像java.lang.reflect.*和sun.reflect.＊这些类都是额外引入的类，不会是调用类。
 
+
+    用法如下：
+        public void testPrint() {
+            JavaLangAccess access = SharedSecrets.getJavaLangAccess();
+            Throwable throwable = new Throwable();
+
+            int depth = access.getStackTraceDepth(throwable);
+
+            //输出JVM栈帧中的所有类实例
+            for (int i = 0; i < depth; i++) {
+                StackTraceElement frame = access.getStackTraceElement(throwable, i);
+                System.out.println(frame);
+            }
+        }
 
 
 

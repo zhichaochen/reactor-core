@@ -1,8 +1,22 @@
 总的执行步骤
-    1、onSubscribe：从上到下
-    2、subscribe
-    3、request
-    4、onNext
+    1、source，
+        记录每个
+        作用：
+    2、subscribe() 或者 subscribeOrReturn
+        其中，好像最后一个算子，和第一个算子使用的是subscribe()方法，
+        中间的算子都是实现InternalFluxOperator中的subscribeOrReturn的方法。
+    3、onSubscribe()(从上到下)
+        在第一个算子之后，例如：FluxArray#subscribe，开始执行onSubscribe操作。
+        作用：
+    4、request(n);(从下到上)
+        下游请求上游数据
+        作用：执行背压。
+
+    5、onNext、onError、onComplete(从上到下。)
+        在第一个算子的request中，例如FluxArray，调用onNext等操作。
+        如果有报错：将错误一级一级的传下去，直到最后一个订阅者，
+        如果完成，将错误一级一级的传下去，直到最后一个订阅者。
+            默认：LambdaSubscriber，可以自己在subscribe()方法中定义。
 
 
 官方参考文档地址：http://projectreactor.io/docs/core/release/reference/
@@ -35,6 +49,10 @@
         实现原理：
             能打头的算子在Flux中提供了static方法。可以直接通过Flux.XXX进行调用。
             不能打头的提供实例方法，只能通过，new对象进行调用。
+
+    2、subscribe()方法，默认创建的是LambdaSubscriber。
+        如果我们没有在.subscribe()中，定义自己的订阅者，那么默认创建的是LambdaSubscriber，
+        详情参考.subscribe()方法的调用链。
 
 1、多个算子如何实现上游可以调用下游，同时，下游也调用上游的？
     参见Flux#subscribe(Subscriber<? super T> actual) 方法。
@@ -172,6 +190,12 @@
         10:45:20.205 [main] INFO  reactor.Flux.Range.1 - | cancel()
 
 9.1、checkpoint实现原理
+    checkpoint算子会创建FluxOnAssembly对象。
+    1、当上游发生错误catch到异常之后，向下传递。
+    2、向下传递途中，会经过FluxOnAssembly 中的订阅者OnAssemblySubscriber的onError方法。
+    3、OnAssemblySubscriber#onError中封装堆栈信息，传递到LambdaSubscriber#onError
+    4、LambdaSubscriber#onError，将错误信息处理后，输出。
+
 9.2、log实现原理？
     1、创建SignalLogger对象，用于记录日志
     2、创建FluxLogFuseable的，在其中记录日志对象
